@@ -7,9 +7,10 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta content="IIIF Image Server 2.0 with Openseadragon." name="description">
+	<link href="/static/styles/style.css" rel="stylesheet" type="text/css" />
 	<script src="/static/scripts/openseadragon/openseadragon.min.js"></script>
     </head>
-    <body style="margin: 0px; padding:0px;">
+    <body>
         <!--[if lt IE 8]>
             <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
@@ -25,7 +26,13 @@
 	    defaultZoomLevel: 1,
 	    showNavigationControl: false
 	  });
+	  viewer.addHandler("open", function(){
+  	    var bounds = viewer.world._items[0].getBounds();
+ 	    console.log(bounds);
+	    viewer.viewport.fitBounds(bounds, true);
+	  })
 	</script>
+	
 
     </body>
 </html>

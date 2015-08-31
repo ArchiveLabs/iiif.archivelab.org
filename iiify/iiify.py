@@ -20,7 +20,8 @@ def index():
 def image_info(identifier):
     try:
         uri = "%s%s" % (request.url_root, identifier)
-        return jsonify(web.info(uri, ia_resolver(identifier)))
+        info = web.info(uri, ia_resolver(identifier))
+        return jsonify(info)
     except:
         abort(400)
 
@@ -33,7 +34,7 @@ def favicon():
 @app.route('/<identifier>/view/<quality>.<fmt>')
 def view(identifier, quality="default", fmt="jpg"):
     uri = '%s%s' % (request.url_root, identifier)
-    return render_template('viewer.html', info=web.info(uri, resolve(identifier)))
+    return render_template('viewer.html', info=web.info(uri, ia_resolver(identifier)))
 
 
 @app.route('/<identifier>/<region>/<size>/<rotation>/<quality>.<fmt>')
@@ -46,7 +47,7 @@ def image_processor(identifier, **kwargs):
 
     try:
         params = web.Parse.params(identifier, **kwargs)
-        tile = iiif.IIIF.render(resolve(identifier), **params)
+        tile = iiif.IIIF.render(ia_resolver(identifier), **params)
         tile.save(cache_path, tile.mime)
         return send_file(tile, mimetype=tile.mime)
     except:
