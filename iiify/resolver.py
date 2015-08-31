@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 import os
@@ -20,8 +21,11 @@ def ia_resolver(identifier):
     leaf = None
     if "$" in identifier:
         identifier, leaf = identifier.split("$")
+
     metadata = requests.get('%s/metadata/%s' % (archive, identifier)).json()
     server = metadata.get('server', 'https://archive.org')
+    if 'dir' not in metadata:
+        raise Exception("No such valid Archive.org item identifier")
     subPrefix = metadata['dir']
     mediatype = metadata['metadata']['mediatype']
     files = metadata['files']
@@ -36,7 +40,20 @@ def ia_resolver(identifier):
 
         elif mediatype.lower() == 'texts':
             if not leaf:
-                raise
+                raise Exception("Book id must be followed by $leaf#, e.g. %s$leaf1" \
+                                    % identifier)
+
+            # Use this within the presentation server:
+            #f = next(f['name'] for f in files if
+            #         f['name'].endswith('_jp2.zip') and
+            #         f['format'] == 'Single Page Processed JP2 ZIP')
+        
+            #m = requests.get(bookdata, data={
+            #        'server': server,
+            #        'itemPath': subPrefix,
+            #        'itemId': identifier
+            #        }).json()
+
             r = requests.get('%s/download/%s/page/%s' % (archive, identifier, leaf))
 
         with open(path, 'wb') as rc:

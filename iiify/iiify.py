@@ -25,6 +25,7 @@ def image_info(identifier):
     except:
         abort(400)
 
+
 @app.route('/favicon.ico')
 def favicon():
     return ''
