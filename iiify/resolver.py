@@ -40,21 +40,10 @@ def ia_resolver(identifier):
 
         elif mediatype.lower() == 'texts':
             if not leaf:
-                raise Exception("Book id must be followed by $leaf#, e.g. %s$leaf1" \
+                raise Exception("Book id must be followed by $#, e.g. %s$1" \
                                     % identifier)
 
-            # Use this within the presentation server:
-            #f = next(f['name'] for f in files if
-            #         f['name'].endswith('_jp2.zip') and
-            #         f['format'] == 'Single Page Processed JP2 ZIP')
-        
-            #m = requests.get(bookdata, data={
-            #        'server': server,
-            #        'itemPath': subPrefix,
-            #        'itemId': identifier
-            #        }).json()
-
-            r = requests.get('%s/download/%s/page/%s' % (archive, identifier, leaf))
+            r = requests.get('%s/download/%s/page/leaf%s' % (archive, identifier, leaf))
 
         with open(path, 'wb') as rc:
             rc.writelines(r.iter_content(chunk_size=1024))

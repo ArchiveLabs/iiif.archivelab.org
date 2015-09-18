@@ -11,12 +11,13 @@
 """
 
 import os
+import sys
 import types
 import configparser
 
 path = os.path.dirname(os.path.realpath(__file__))
 approot = os.path.abspath(os.path.join(path, os.pardir))
-
+sys.path.append(approot)
 
 def getdef(self, section, option, default_value):
     try:
