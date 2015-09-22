@@ -4,8 +4,9 @@ import os
 from flask import Flask, send_file, jsonify, abort, request, render_template
 from flask.ext.cors import CORS
 from iiif2 import iiif, web
-from resolver import ia_resolver
-from configs import options, cors, approot, cache_root, media_root, cache_expr
+from resolver import ia_resolver, create_manifest
+from configs import options, cors, approot, cache_root, media_root, \
+    cache_expr, version
 
 app = Flask(__name__)
 cors = CORS(app) if cors else None
@@ -13,30 +14,46 @@ cors = CORS(app) if cors else None
 
 @app.route('/')
 def index():
+    """Lists all recently cached images"""
     return jsonify({'identifiers': [f for f in os.listdir(media_root)]})
-
-
-@app.route('/<identifier>/info.json')
-def image_info(identifier):
-    try:
-        info = web.info(identifier, ia_resolver(identifier))
-        return jsonify(info)
-    except:
-        abort(400)
 
 
 @app.route('/favicon.ico')
 def favicon():
-    return ''
+    return send_file('static/favicon.ico')
 
 
-@app.route('/<identifier>', defaults={'quality': 'default', 'fmt': 'jpg'})
-@app.route('/<identifier>/view/<quality>.<fmt>')
-def view(identifier, quality="default", fmt="jpg"):
+@app.route('/documentation')
+def documentation():
+    return render_template('documentation.html', version=version)
+
+
+@app.route('/<identifier>')
+def view(identifier):
     domain = request.args.get('domain', request.url_root)
     uri = '%s%s' % (domain, identifier)
-    return render_template('viewer.html', domain=domain,
-                           info=web.info(uri, ia_resolver(identifier)))
+    path, mediatype = ia_resolver(identifier)
+    if mediatype == 'image' or '$' in identifier:
+        return render_template('viewer.html', domain=domain,
+                               info=web.info(uri, path))
+    return render_template('reader.html', domain=request.base_url)
+
+
+@app.route('/<identifier>/manifest.json')
+def manifest(identifier):
+    domain = request.args.get('domain', request.url_root)
+    return jsonify(create_manifest(identifier, domain=domain))
+
+
+@app.route('/<identifier>/info.json')
+def info(identifier):
+    try:
+        domain = '%s/%s' % (request.url_root, identifier)
+        path, mediatype = ia_resolver(identifier)
+        info = web.info(domain, path)
+        return jsonify(info)
+    except:
+        abort(400)
 
 
 @app.route('/<identifier>/<region>/<size>/<rotation>/<quality>.<fmt>')
@@ -49,7 +66,8 @@ def image_processor(identifier, **kwargs):
 
     try:
         params = web.Parse.params(identifier, **kwargs)
-        tile = iiif.IIIF.render(ia_resolver(identifier), **params)
+        path, _ = ia_resolver(identifier)
+        tile = iiif.IIIF.render(path, **params)
         tile.save(cache_path, tile.mime)
         return send_file(tile, mimetype=tile.mime)
     except Exception as e:
@@ -60,6 +78,7 @@ def image_processor(identifier, **kwargs):
 def add_header(response):
     response.cache_control.max_age = cache_expr  # minutes
     return response
+
 
 if __name__ == '__main__':
     app.run(**options)

@@ -55,4 +55,5 @@ if not os.path.isabs(cache_root):
 if not os.path.exists(cache_root):
     os.makedirs(cache_root)
 
-cache_expr = config.getdef('cache', 'expr', 100)
+cache_expr = int(config.getdef('cache', 'expire_minutes', 30))
+version = int(config.getdef('api', 'version', 1))

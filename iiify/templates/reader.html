@@ -1,0 +1,38 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>IIIF Image Server 2.0 + Mirador</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" type="text/css" href="{{ request.url_root }}static/mirador/css/mirador-combined.css"/>
+	<style type="text/css">
+	  body { padding: 0; margin: 0; overflow: hidden; width: 100%; height: 100%;font-size: 70%; }
+	  #viewer { background: #333; width: 100%; height: 100%; position: fixed; }
+	</style>
+        <meta content="IIIF Image Server 2.0 with Mirador." name="description">
+	<script type="text/javascript" src="{{ request.url_root }}static/mirador/mirador.js"/></script>
+    </head>
+    <body>
+        <!--[if lt IE 8]>
+            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+	<div id="viewer"></div>
+	<script type="text/javascript">
+	  $(function() {
+    	    Mirador({
+              "id": "viewer",
+              "layout": "1x1",
+              "data": [ 
+                { "manifestUri": "{{ domain }}/manifest.json", "location": "Internet Archive"}
+              ],	  
+              "windowObjects": [{
+                 "viewType": "BookView",
+                 "loadedManifest": "{{ domain }}/manifest.json",
+              }]
+            });
+	  });
+	</script>
+    </body>
+</html>
