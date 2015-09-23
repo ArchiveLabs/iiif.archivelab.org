@@ -1,0 +1,48 @@
+<section id="resources" class="hiddenz">
+  <h1>Items</h1>
+  <p>
+
+  <ol type="i" class="toc">
+    <li><a href="">Listing Items</a></li>
+    <li><a href="">Items Types</a></li>
+    <li><a href="">Supported Image Formats</a></li>
+    <li><a href="">Get an Item Tile</a></li>
+    <li><a href="">Get an Item Manifest</a></li>
+    <li><a href="">Get an Book Manifest</a></li>
+    <li><a href=""></a></li>
+    <li><a href=""></a></li>
+  </ol>
+
+  <h2><a name="resources-listing">Listing Resources</a></h2>
+  <p>
+    Querying the root of the Internet Archive IIIF v1 (alpha) server
+    results in a list of all publicly available and compatible image
+    and book items.
+  </p>
+
+  <pre><code>
+  $ curl -i "{{ request.url_root }}"
+
+  HTTP/1.1 200 OK
+  Server: nginx/1.4.6 (Ubuntu)
+  Date: Tue, 22 Sep 2015 08:07:27 GMT
+  Content-Type: application/json
+  Content-Length: 21307
+  Connection: keep-alive
+  Cache-Control: max-age=5
+
+  []
+  </code></pre>
+
+  <h3></h3>
+
+  <h2><a name="resources-supported">Supported Image Formats</a></h2>
+  <p>
+    The image formats available for a given item is determine by the
+    item's files on archive.org. To see what formats are available for an item, go to
+    https://archive.org/metadata/:itemid/files.
+
+    The API is capable of interfacing with jp2 (openjpeg), gif, jpg, tiff, png.
+  </p>
+
+</section>

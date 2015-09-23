@@ -25,7 +25,7 @@ def favicon():
 
 @app.route('/documentation')
 def documentation():
-    return render_template('documentation.html', version=version)
+    return render_template('docs/index.html', version=version)
 
 
 @app.route('/<identifier>')
@@ -48,7 +48,7 @@ def manifest(identifier):
 @app.route('/<identifier>/info.json')
 def info(identifier):
     try:
-        domain = '%s/%s' % (request.url_root, identifier)
+        domain = '%s%s' % (request.url_root, identifier)
         path, mediatype = ia_resolver(identifier)
         info = web.info(domain, path)
         return jsonify(info)

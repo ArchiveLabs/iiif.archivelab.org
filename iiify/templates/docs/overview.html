@@ -1,5 +1,7 @@
-<div id="overview">
+<section id="overview">
+
   <h1>Overview</h1>
+
   <div class="banner">
     New to IIIF? Read the <a href="#introduction">introduction</a> first.
   </div>
@@ -12,8 +14,171 @@
   </p>
 
   <ol type="i" class="toc">
-    <li><a href="">Background</a></li>
-    <li><a href="">Use Cases</a></li>
     <li><a href="">Current Version</a></li>
+    <li><a href="">Conventions</a></li>
+    <li><a href="">Schema</a></li>
+    <li><a href="">Pagination</a></li>
+    <li><a href="">Client Errors</a></li>
+    <li><a href="">HTTP Redirects</a></li>    
+    <li><a href="">Rate Limiting</a></li>
+    <li><a href="">Cross Origin Resource Sharing</a></li>
   </ol>
-</div>
+
+  <h2><a name="overview-version">Current Version</a></h2>
+  <p>
+    <span class="warning">Caution.</span> The Internet Archive IIIF
+    API is currently at version 1 (alpha). This means it is currently
+    under development as a prototype for community feedback and may be
+    either discontinued at any time, or deprecated in favor of an
+    official version 1 release.
+  </p>
+
+  <h2><a name="overview-conventions">Conventions</a></h2>
+  <h3>IDs</h3>
+  <p>
+    ID placeholders are preceded by a ":" in examples. IDs need not
+    appear in bold, however this is done in the following example for
+    emphasis:
+  </p>
+
+  <div class="request">
+    GET {{ request.url_root }}<strong>:id</strong>
+  </div>    
+
+  <h2><a name="overview-schema">Schema</a></h2>
+  <p>
+    All API access is over HTTPS, and accessed from the
+    {{ request.url_root }} domain. All data is sent and received as JSON.
+  </p>
+
+  <pre><code>
+  $ curl -i {{ request.url_root }}  
+
+  HTTP/1.1 200 OK
+  Server: nginx/1.4.6 (Ubuntu)
+  Date: Tue, 22 Sep 2015 08:07:27 GMT
+  Content-Type: application/json
+  Content-Length: 21307
+  Connection: keep-alive
+  Cache-Control: max-age=5
+
+  {
+    ...
+  }
+  </code></pre>
+
+  <h3>Trailing Slashes</h3>
+  <p>
+    Other than the server root, uris should <strong>not</strong> end
+    with trailing slashes.
+  </p>
+
+  <h3>Summary Representations</h3>
+
+  <p>
+    When you fetch a list of resources, the response includes a subset
+    of the attributes for that resource. This is the “summary”
+    representation of the resource. (Some attributes are
+    computationally expensive for the API to provide. For performance
+    reasons, the summary representation excludes those attributes. To
+    obtain those attributes, fetch the “detailed” representation.)
+  </p>
+
+  <div class="request">
+    GET {{ request.url_root }}
+  </div>
+
+  <h3>Detailed Representations</h3>
+  <p>
+    To get detailed metadata about a specific Archive.org item, fetch
+    the item's metadata by ID through the Archive.org. (Note that
+    authorization sometimes influences the amount of detail included
+    in the representation.)
+  </p>
+
+  <div class="request">
+    GET https://archive.org/<strong>metadata</strong>/:id
+  </div>
+
+  <p>For example:</p>
+  <pre><code>
+  $ curl -i "https://archive.org/metadata/thirteenbookseu03heibgoog"
+
+  HTTP/1.1 200 OK
+  Server: nginx/1.4.6 (Ubuntu)
+  Date: Tue, 22 Sep 2015 08:07:27 GMT
+  Content-Type: application/json
+  Content-Length: 21307
+  Connection: keep-alive
+  Cache-Control: max-age=5
+
+  {
+    created: 1442378110,
+    d1: "ia600309.us.archive.org",
+    ad2: "ia800309.us.archive.org",
+    dir: "/20/items/thirteenbookseu03heibgoog",
+    files: [],
+    files_count: 16,
+    item_size: 196609584,
+    metadata: {},
+    reviews: [],
+    server: "ia800309.us.archive.org",
+    uniq: 893310999,
+    updated: 1442380951,
+    workable_servers: []
+  }
+  </code></pre>
+
+  <p>
+    If this data is insufficient, you may be able to attrieve
+    additional information through
+    the <a href="https://archive.org/advancedsearch.php">Advanced
+    Search</a> feature.
+  </p>
+
+  <h2><a name="overview-pagination">Pagination</a></h2>
+  
+
+
+  <h2><a name="overview-errors">Client Errors</a></h2>
+  <p>
+    TODO.
+  </p>
+
+  <h2><a name="overview-redirects">HTTP Redirects</a></h2>
+  <p>
+  </p>
+
+  <h2><a name="overview-cors">Cross Origin Resource Sharing</a></h2>
+  <p>
+    The API supports Cross Origin Resource Sharing (CORS) for AJAX
+    requests from any origin.  You can read
+    the <a href="http://www.w3.org/TR/cors/">CORS W3C
+    Recommendation</a>, or
+    <a href="http://code.google.com/p/html5security/wiki/CrossOriginRequestSecurity">this
+    intro</a> from the HTML 5 Security Guide.
+  </p>
+
+  <h2><a name="overview-ratelimits">Rate Limiting</a></h2>
+  <p>
+    For the API v1 (alpha) API, no rate limiting is in effect -- we
+    are operating on a trust model. For the stable v1 release,
+    unauthenticated requests will be limited to 2,000 per hour. When
+    this change comes into effect, you will be able to check the
+    returned HTTP headers of any API request to see your current rate
+    limit status:
+  </p>
+
+  <pre><code>
+  $ curl -i {{ request.url_root }}platowithenglish04platuoft
+
+  HTTP/1.1 200 OK
+  Date: Tue, 22 Sep 2015 08:07:27 GMT
+  Status: 200 OK
+  X-RateLimit-Limit: 2000
+  X-RateLimit-Remaining: 1999
+  X-RateLimit-Reset: 1372700873
+  </pre></code>
+</section>
+
+<hr/>

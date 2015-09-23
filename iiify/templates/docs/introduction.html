@@ -1,17 +1,99 @@
-<div id="introduction">
+<section id="introduction" class="hiddenz">
   <h1>Introduction</h1>
+  <p>
+    For those unfamiliar with the IIIF specification, this
+    introduction describes the importance and rich applications of
+    <a href="https://iiif.io">IIIF</a> and the Internet Archive's IIIF
+    Service.
+  </p>
+
+  <ol type="i" class="toc">
+    <li><a href="">What is IIIF?</a></li>
+    <li><a href="">Importance</a></li>
+    <li><a href="">Deploying a IIIF Service</a></li>
+  </ol>
+
+  <h2><a name="intro-iiif">What is IIIF?</a></h2>
+  <p>
+    <a href="https://iiif.io">IIIF</a> (the "International Image
+    Interoperability Framework") is a collection of web standards for
+    manipulating and serving image resources (Image API), as well as
+    structuring collections of these images (Presentation API).
+  </p>
+
+  <h3>Image API</h3>
+  <p>
+    The <a href="http://iiif.io/api/image/2.0/">Image API</a> is an
+    interface capable of producing and serving arbitrary tiles of
+    arbitrary regions of an image (like Google Maps). The properties
+    of these image tiles are specified within a URL, allowing
+    permenant citation and retrieval at a later time
+    (see <a href="https://en.wikipedia.org/wiki/Idempotence">idempotence</a>).
+    The Image API supports and powers other computer applications
+    (like <a href="https://openseadragon.github.io/">zoomable image
+    viewers</a>
+    and <a href="http://universalviewer.azurewebsites.net/">book
+    readers</a>).
+  </p>
+
+  <h3>Presentation API</h3>
+  <p>
+    The <a href="http://iiif.io/api/presentation/2.0/">Presentation
+    API</a> allows institutions to publish and consume metadata about
+    collections and sequences of image resources, called Manifests.  A
+    Manifest may be composed of resources from any number of different
+    institutions serving their images in IIIF format.
+  </p>
+
+  <p>
+    For more information, read about IIIF's
+    goals <a href="http://universalviewer.azurewebsites.net/">here</a>.
+  </p>
+  
+  <h2><a name="intro-importance">Importance</a></h2>
+  <p>
+    At its essence, the goal of IIIF is interoperability: to make an
+    institution's image resources available and accessible to web
+    applications and clients running on other domains.
+  </p>
+
   <p>
     The <a href="{{ request.url_root }}">Internet Archive IIIF API
     v1</a>
     (<a href="https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha">alpha</a>)
     is
     a <a href="https://en.wikipedia.org/wiki/Representational_state_transfer">RESTful</a> <a href="https://en.wikipedia.org/wiki/Web_service">web
-    service</a> which provides a mechanism for producing permanantly
-    citeable image tiles of any arbitrary region of any image or book
-    available in the Internet Archive. Tiles are generated according to
-    the <a href="https://iiif.io">IIIF</a> (International Image
-    Interoperability Framework) Internet Standard
-    (<a href="http://iiif.io/api/image/2.0">learn more</a>).
+    service</a> which implements IIIF (Image API &amp; Presentation
+    API) and provides a mechanism for accessing all of the Archive's
+    images and books in IIIF format. Every image item in the Archive
+    now has has a corresponding info.json and every book a
+    manifest.json. This means, you can seamlessly view any Archive.org
+    image or book in any interface compatible with IIIF (such as
+    OpenSeadragon, Mirador, and the Universal Viewer) and also enjoy
+    the enhancements they provide (annotation, side-by-size viewing,
+    and loading images from different institutions into the same
+    space).
   </p>
 
-</div>
+  <p>
+    The service also provides a mechanism for producing permanantly
+    citeable image tiles of any arbitrary region of any image or book
+    found in the Internet Archive.
+  </p>
+
+  <h2>Deploying a IIIF Service</h2>
+  <p>
+    The Internet Archive IIIF API v1 (alpha) is built using
+    Python3.4 <a href="https://pypi.python.org/pypi/Flask">Flask</a>
+    and the <a href="https://pypi.python.org/pypi/iiif2">iiif2</a>
+    libraries. The source code
+    for <a href="iiif.archive.org">iiif.archive.org</a> is publicly
+    available <a href="https://github.com/mekarpeles/iiif.archive.org">here</a>,
+    as is the source of the iiif2 image processing
+    library <a href="https://github.com/mekarpeles/iiif2">here</a>. For
+    questions on implementing a service,
+    contact <a href="mailto:support@archive.org">support@archive.org</a>.
+  </p>
+</section>
+
+<hr/>

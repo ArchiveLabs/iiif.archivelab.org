@@ -8,7 +8,7 @@ from configs import options, cors, approot, cache_root, media_root
 archive = 'https://archive.org'
 bookdata = 'http://%s/BookReader/BookReaderJSON.php'
 bookreader = "http://%s/BookReader/BookReaderImages.php"
-valid_filetypes = ['jpg', 'png', 'gif']
+valid_filetypes = ['jpg', 'png', 'gif', 'tif']
 
 def create_manifest(identifier, domain=None):
     manifest = {}
@@ -107,9 +107,9 @@ def ia_resolver(identifier):
         if mediatype.lower() == 'image':
             f = next(f for f in files if valid_filetype(f['name']) \
                          and f['source'].lower() == 'original')
+            url = '%s/download/%s/%s' % (archive, identifier, f['name'])
 
-            r = requests.get('%s/download/%s/%s' % (archive, identifier, f['name']),
-                             stream=True, allow_redirects=True)
+            r = requests.get(url, stream=True, allow_redirects=True)
 
         elif mediatype.lower() == 'texts' and leaf:
             r = requests.get('%s/download/%s/page/leaf%s' % (archive, identifier, leaf))

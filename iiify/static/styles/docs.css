@@ -21,7 +21,7 @@ a {
 p {
     font-size: .85em;
     line-height: 1.5em;
-    color: #333;
+    color: #444;
 }
 
 hr {
@@ -31,17 +31,47 @@ hr {
     border-top: 1px solid #ddd;
 }
 
+section:first-child {
+    margin-top: 0px;
+}
+
+section {
+    margin-top: 50px;
+}
+
+code {
+    background-color: #444;
+    border-radius: 3px;
+    display: block;
+    font-family: Consolas, 'Liberation Mono', Courier, monospace;
+    font-size: .75em;
+    color: #fff;
+}
+
 .pagetop {
     margin-bottom: 10px;
 }
 
 h1 {
+    font-size: 2.2em;
     margin-top: 0px;
     font-weight: normal;
+    color: #333;
 }
 
 h2 {
+    font-size: 1.5em;
     font-weight: normal;
+    margin-top: 30px;
+}
+
+h2 a {
+    color: #444;
+}
+
+h3 {
+    color: #444;
+    font-size: 1em;
 }
 
 #container {
@@ -94,7 +124,7 @@ h2 {
 #container nav ol li a {
     font-weight: bold;
     text-decoration: none;
-    color: #555;
+    color: #444;
 }
 
 .clearfix {
@@ -114,4 +144,23 @@ h2 {
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 3px;
+}
+
+.request {
+    font-size: .9em;
+    background-color: #fafafa;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-family: Consolas, 'Liberation Mono', Courier, monospace;
+    font-size: .75em;
+}
+
+.warning {
+    font-weight: bold;
+    color: red;
+}
+
+h2.pagetitle {
+    margin-bottom: 10px;
 }
