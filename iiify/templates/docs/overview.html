@@ -1,18 +1,17 @@
-<section id="overview">
-
+<article id="overview">
   <h1>Overview</h1>
-
+  
   <div class="banner">
     New to IIIF? Read the <a href="#introduction">introduction</a> first.
   </div>
-
+  
   <p>
     This describes the resources that make up the Internet
     Archive IIIF API v1 (alpha). If you have any problems or
     requests, please
     contact <a href="mailto:support@archive.org">support</a>.
   </p>
-
+  
   <ol type="i" class="toc">
     <li><a href="">Current Version</a></li>
     <li><a href="">Conventions</a></li>
@@ -24,34 +23,37 @@
     <li><a href="">Cross Origin Resource Sharing</a></li>
   </ol>
 
-  <h2><a name="overview-version">Current Version</a></h2>
-  <p>
-    <span class="warning">Caution.</span> The Internet Archive IIIF
-    API is currently at version 1 (alpha). This means it is currently
-    under development as a prototype for community feedback and may be
-    either discontinued at any time, or deprecated in favor of an
-    official version 1 release.
-  </p>
+  <section>
+    <h2><a name="overview-version">Current Version</a></h2>
+    <p>
+      <span class="warning">Caution.</span> The Internet Archive IIIF
+      API is currently at version 1 (alpha). This means it is currently
+      under development as a prototype for community feedback and may be
+      either discontinued at any time, or deprecated in favor of an
+      official version 1 release.
+    </p>
 
-  <h2><a name="overview-conventions">Conventions</a></h2>
-  <h3>IDs</h3>
-  <p>
-    ID placeholders are preceded by a ":" in examples. IDs need not
-    appear in bold, however this is done in the following example for
-    emphasis:
-  </p>
+    <h2><a name="overview-conventions">Conventions</a></h2>
+    <h3>IDs</h3>
+    <p>
+      ID placeholders are preceded by a ":" in examples. IDs need not
+      appear in bold, however this is done in the following example for
+      emphasis:
+    </p>
 
-  <div class="request">
-    GET {{ request.url_root }}<strong>:id</strong>
-  </div>    
+    <div class="request">
+      GET {{ request.url_root }}<strong>:id</strong>
+    </div>    
+  </section>
 
-  <h2><a name="overview-schema">Schema</a></h2>
-  <p>
-    All API access is over HTTPS, and accessed from the
-    {{ request.url_root }} domain. All data is sent and received as JSON.
-  </p>
+  <section>
+    <h2><a name="overview-schema">Schema</a></h2>
+    <p>
+      All API access is over HTTPS, and accessed from the
+      {{ request.url_root }} domain. All data is sent and received as JSON.
+    </p>
 
-  <pre><code>
+    <pre><code>
   $ curl -i {{ request.url_root }}  
 
   HTTP/1.1 200 OK
@@ -65,43 +67,43 @@
   {
     ...
   }
-  </code></pre>
+    </code></pre>
 
-  <h3>Trailing Slashes</h3>
-  <p>
-    Other than the server root, uris should <strong>not</strong> end
-    with trailing slashes.
-  </p>
+    <h3>Trailing Slashes</h3>
+    <p>
+      Other than the server root, uris should <strong>not</strong> end
+      with trailing slashes.
+    </p>
 
-  <h3>Summary Representations</h3>
+    <h3>Summary Representations</h3>
 
-  <p>
-    When you fetch a list of resources, the response includes a subset
-    of the attributes for that resource. This is the “summary”
-    representation of the resource. (Some attributes are
-    computationally expensive for the API to provide. For performance
-    reasons, the summary representation excludes those attributes. To
-    obtain those attributes, fetch the “detailed” representation.)
-  </p>
+    <p>
+      When you fetch a list of resources, the response includes a subset
+      of the attributes for that resource. This is the “summary”
+      representation of the resource. (Some attributes are
+      computationally expensive for the API to provide. For performance
+      reasons, the summary representation excludes those attributes. To
+      obtain those attributes, fetch the “detailed” representation.)
+    </p>
 
-  <div class="request">
-    GET {{ request.url_root }}
-  </div>
+    <div class="request">
+      GET {{ request.url_root }}
+    </div>
 
-  <h3>Detailed Representations</h3>
-  <p>
-    To get detailed metadata about a specific Archive.org item, fetch
-    the item's metadata by ID through the Archive.org. (Note that
-    authorization sometimes influences the amount of detail included
-    in the representation.)
-  </p>
+    <h3>Detailed Representations</h3>
+    <p>
+      To get detailed metadata about a specific Archive.org item, fetch
+      the item's metadata by ID through the Archive.org. (Note that
+      authorization sometimes influences the amount of detail included
+      in the representation.)
+    </p>
 
-  <div class="request">
-    GET https://archive.org/<strong>metadata</strong>/:id
-  </div>
+    <div class="request">
+      GET https://archive.org/<strong>metadata</strong>/:id
+    </div>
 
-  <p>For example:</p>
-  <pre><code>
+    <p>For example:</p>
+    <pre><code>
   $ curl -i "https://archive.org/metadata/thirteenbookseu03heibgoog"
 
   HTTP/1.1 200 OK
@@ -127,23 +129,49 @@
     updated: 1442380951,
     workable_servers: []
   }
-  </code></pre>
+    </code></pre>
 
-  <p>
-    If this data is insufficient, you may be able to attrieve
-    additional information through
-    the <a href="https://archive.org/advancedsearch.php">Advanced
-    Search</a> feature.
-  </p>
+    <p>
+      If this data is insufficient, you may be able to attrieve
+      additional information through
+      the <a href="https://archive.org/advancedsearch.php">Advanced
+	Search</a> feature.
+    </p>
+  </section>
 
-  <h2><a name="overview-pagination">Pagination</a></h2>
-  
+  <section>
+    <h2><a name="overview-pagination">Pagination</a></h2>
+    <p>
+      Requests that return multiple items will be paginated to 50
+      items by default. You can specify further pages with the ?page
+      GET parameter. For some resources, you can also set a custom
+      page size up to 100 with the ?limit parameter. Note that for
+      technical reasons not all endpoints respect the ?limit
+      parameter, see events for example.
+    </p>
 
+    <p>
+      Item count begins at 0 (the first item is the 0th entry). Paging
+      begins at 1, on the first page (i.e. ?page=1)
+    </p>
 
-  <h2><a name="overview-errors">Client Errors</a></h2>
-  <p>
-    TODO.
-  </p>
+    <pre><code>
+  $ curl -i {{ request.url_root }}?page=1&limit=25
+    </code></pre>
+
+    <h3>Calculating next page</h3>
+    <p>
+      This section will be updated when pagination for items is
+      released.
+    </p>
+
+  </section>
+
+  <section>
+    <h2><a name="overview-errors">Client Errors</a></h2>
+    <p>
+      TODO.
+    </p>
 
   <h2><a name="overview-redirects">HTTP Redirects</a></h2>
   <p>
@@ -179,6 +207,37 @@
   X-RateLimit-Remaining: 1999
   X-RateLimit-Reset: 1372700873
   </pre></code>
+
+  <table>
+    <thead>
+      <tr>
+	<th>Header Name</th>
+	<th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+	<td><code>X-RateLimit-Limit</code></td>
+	<td>The maximum number of requests that the consumer is permitted to make per hour.</td>
+      </tr>
+      <tr>
+	<td><code>X-RateLimit-Remaining</code></td>
+	<td>The number of requests remaining in the current rate limit window.</td>
+      </tr>
+      <tr>
+	<td><code>X-RateLimit-Reset</code></td>
+	<td>The time at which the current rate limit window resets in <a href="http://en.wikipedia.org/wiki/Unix_time">UTC epoch seconds</a>.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    For more information, refer to
+    github's <a href="https://developer.github.com/guides/traversing-with-pagination/">Traversing
+    With Pagination</a> documentation, as pagination for our interface
+    is modeled after their service.
+  </p>
+
 </section>
 
 <hr/>

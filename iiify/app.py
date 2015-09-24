@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
 import os
+import requests
 from flask import Flask, send_file, jsonify, abort, request, render_template
 from flask.ext.cors import CORS
 from iiif2 import iiif, web
 from resolver import ia_resolver, create_manifest
 from configs import options, cors, approot, cache_root, media_root, \
-    cache_expr, version
+    cache_expr, version, apiurl
+
 
 app = Flask(__name__)
 cors = CORS(app) if cors else None
@@ -14,14 +16,27 @@ cors = CORS(app) if cors else None
 
 @app.route('/')
 def index():
+    """Lists all available book and image items on Archive.org"""
+    page = request.args.get("page", 1)
+    limit = min(int(request.args.get("limit", 50)), 100)
+    r = requests.get("%s/items" % apiurl, params={
+        "page": page,
+        "limit": limit,
+        "filters": "(mediatype:(texts) OR mediatype:(image))"
+    })
+    return jsonify(r.json())
+
+
+@app.route('/cache')
+def cache():
     """Lists all recently cached images"""
     return jsonify({'identifiers': [f for f in os.listdir(media_root)]})
 
 
-@app.route('/favicon.ico')
-def favicon():
-    return send_file('static/favicon.ico')
-
+@app.route('/demo')
+def demo():
+    domain = "https://purl.stanford.edu/kq131cs7229/iiif"
+    return render_template('reader.html', domain=domain)
 
 @app.route('/documentation')
 def documentation():

@@ -1,4 +1,4 @@
-<section id="resources" class="hiddenz">
+<article id="resources" class="hiddenz">
   <h1>Items</h1>
   <p>
 
@@ -13,14 +13,15 @@
     <li><a href=""></a></li>
   </ol>
 
-  <h2><a name="resources-listing">Listing Resources</a></h2>
-  <p>
-    Querying the root of the Internet Archive IIIF v1 (alpha) server
-    results in a list of all publicly available and compatible image
-    and book items.
-  </p>
+  <section>
+    <h2><a name="resources-listing">Listing Resources</a></h2>
+    <p>
+      Querying the root of the Internet Archive IIIF v1 (alpha) server
+      results in a list of all publicly available and compatible image
+      and book items.
+    </p>
 
-  <pre><code>
+    <pre><code>
   $ curl -i "{{ request.url_root }}"
 
   HTTP/1.1 200 OK
@@ -32,17 +33,19 @@
   Cache-Control: max-age=5
 
   []
-  </code></pre>
+    </code></pre>
+  </section>
 
-  <h3></h3>
+  <section>
+    <h2><a name="resources-supported">Supported Image Formats</a></h2>
+    <p>
+      The image formats available for a given item is determine by the
+      item's files on archive.org. To see what formats are available for an item, go to
+      https://archive.org/metadata/:itemid/files.
 
-  <h2><a name="resources-supported">Supported Image Formats</a></h2>
-  <p>
-    The image formats available for a given item is determine by the
-    item's files on archive.org. To see what formats are available for an item, go to
-    https://archive.org/metadata/:itemid/files.
+      The API is capable of interfacing with jp2 (openjpeg), gif, jpg, tiff, png.
+    </p>
+  </section>
 
-    The API is capable of interfacing with jp2 (openjpeg), gif, jpg, tiff, png.
-  </p>
-
-</section>
+</article>
+</hr>

@@ -56,4 +56,6 @@ if not os.path.exists(cache_root):
     os.makedirs(cache_root)
 
 cache_expr = int(config.getdef('cache', 'expire_minutes', 30))
+
 version = int(config.getdef('api', 'version', 1))
+apiurl = config.getdef('api', 'url', "https://api-alpha.archive.org")

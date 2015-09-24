@@ -31,11 +31,11 @@ hr {
     border-top: 1px solid #ddd;
 }
 
-section:first-child {
+article:first-child {
     margin-top: 0px;
 }
 
-section {
+article {
     margin-top: 50px;
 }
 
