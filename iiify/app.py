@@ -35,7 +35,7 @@ def cache():
 
 @app.route('/demo')
 def demo():
-    domain = "https://purl.stanford.edu/kq131cs7229/iiif"
+    domain = "http://purl.stanford.edu/kq131cs7229/iiif"
     return render_template('reader.html', domain=domain)
 
 @app.route('/documentation')
@@ -47,7 +47,10 @@ def documentation():
 def view(identifier):
     domain = request.args.get('domain', request.url_root)
     uri = '%s%s' % (domain, identifier)
-    path, mediatype = ia_resolver(identifier)
+    try:
+        path, mediatype = ia_resolver(identifier)
+    except ValueError:
+        abort(404)
     if mediatype == 'image' or '$' in identifier:
         return render_template('viewer.html', domain=domain,
                                info=web.info(uri, path))
@@ -57,18 +60,24 @@ def view(identifier):
 @app.route('/<identifier>/manifest.json')
 def manifest(identifier):
     domain = request.args.get('domain', request.url_root)
-    return jsonify(create_manifest(identifier, domain=domain))
+    try:
+        return ldjsonify(create_manifest(identifier, domain=domain))
+    except:
+        abort(404)
 
 
 @app.route('/<identifier>/info.json')
 def info(identifier):
     try:
-        domain = '%s%s' % (request.url_root, identifier)
         path, mediatype = ia_resolver(identifier)
+    except ValueError:
+        abort(404)
+    try:
+        domain = '%s%s' % (request.url_root, identifier)
         info = web.info(domain, path)
-        return jsonify(info)
+        return ldjsonify(info)
     except:
-        abort(400)
+        abort(400)  # , "Invalid item, may actually be collection")
 
 
 @app.route('/<identifier>/<region>/<size>/<rotation>/<quality>.<fmt>')
@@ -80,19 +89,28 @@ def image_processor(identifier, **kwargs):
         return send_file(cache_path, mimetype=mime)
 
     try:
-        params = web.Parse.params(identifier, **kwargs)
         path, _ = ia_resolver(identifier)
+    except ValueError:
+        abort(404)
+    try:
+        params = web.Parse.params(identifier, **kwargs)
         tile = iiif.IIIF.render(path, **params)
         tile.save(cache_path, tile.mime)
         return send_file(tile, mimetype=tile.mime)
     except Exception as e:
-        abort(400)
+        abort(400)  # , "Invalid tiling parameter: %s" % e)
 
 
 @app.after_request
 def add_header(response):
     response.cache_control.max_age = cache_expr  # minutes
     return response
+
+
+def ldjsonify(data):
+    j = jsonify(data)
+    j.mimetype = "application/ld+json"
+    return j
 
 
 if __name__ == '__main__':

@@ -5,20 +5,22 @@
   <ol type="i" class="toc">
     <li><a href="">Listing Items</a></li>
     <li><a href="">Items Types</a></li>
-    <li><a href="">Supported Image Formats</a></li>
-    <li><a href="">Get an Item Tile</a></li>
-    <li><a href="">Get an Item Manifest</a></li>
-    <li><a href="">Get an Book Manifest</a></li>
-    <li><a href=""></a></li>
-    <li><a href=""></a></li>
+    <li><a href="">Viewing Items</a></li>
+    <li><a href="">Producing Tiles</a></li>
+    <li><a href="">IIIF Manifests &amp; Metadata</a></li>
   </ol>
 
   <section>
-    <h2><a name="resources-listing">Listing Resources</a></h2>
+    <h2><a name="resources-listing">Listing Items</a></h2>
     <p>
       Querying the root of the Internet Archive IIIF v1 (alpha) server
       results in a list of all publicly available and compatible image
-      and book items.
+      and book items. Some items which are indexed in our search
+      engine but do have no associated content files will result in an
+      Internal Server Error. You can confirm whether the resource
+      actually exists or not by visiting the item's /details page on
+      archive.org. In the official v1 release, the message displayed
+      for this error will be clarified.
     </p>
 
     <pre><code>
@@ -37,14 +39,49 @@
   </section>
 
   <section>
-    <h2><a name="resources-supported">Supported Image Formats</a></h2>
+    <h2><a name="resources-types">Item Types</a></h2>
+    <p>
+      Items available through the this service include Images, Books,
+      Book Pages. This includes any item on archive.org which has a
+      `mediatype` of `texts` or `image` which can be verified through
+      the <a href="https://blog.archive.org/2013/07/04/metadata-api/">metadata
+      API</a>.
+    </p>
+
+    <h3>Supported Image Formats</h3>
     <p>
       The image formats available for a given item is determine by the
       item's files on archive.org. To see what formats are available for an item, go to
       https://archive.org/metadata/:itemid/files.
-
+    </p>
+    <p>
       The API is capable of interfacing with jp2 (openjpeg), gif, jpg, tiff, png.
     </p>
+  </section>
+
+  <section>
+    <h2><a name="resources-viewing">Viewing Images</a></h2>
+    <p>
+      Documentation In progress.
+    </p>
+  </section>
+
+  <section>
+    <h2><a name="resources-tiles">Producing Tiles</a></h2>
+    <p>
+      Documentation In progress.
+    </p>
+  </section>
+
+  <section>
+    <h2><a href="resources-metadata">IIIF Manifests &amp; Metadata</a></h2>
+    <p>
+      Documentation In progress.
+    </p>
+
+    <pre><code>
+
+    </code></pre>
   </section>
 
 </article>

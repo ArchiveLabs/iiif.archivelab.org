@@ -1,24 +1,80 @@
-
 #!/usr/bin/env python
 
 import os
 import requests
+from iiif2 import iiif, web
 from configs import options, cors, approot, cache_root, media_root
 
-archive = 'https://archive.org'
+CONTEXT = 'http://iiif.io/api/image/2/context.json'
+ARCHIVE = 'http://archive.org'
 bookdata = 'http://%s/BookReader/BookReaderJSON.php'
 bookreader = "http://%s/BookReader/BookReaderImages.php"
-valid_filetypes = ['jpg', 'png', 'gif', 'tif']
+valid_filetypes = ['jpg', 'jpeg', 'png', 'gif', 'tif', 'jp2', 'pdf']
+
+def manifest_page(identifier, label="", page="", width="", height=""):
+    return {
+        '@id': '%s/canvas' % identifier,
+        '@type': 'sc:Sequence',
+        'label': label,
+        'width': width,
+        'height': height,
+        'images': [{
+            'type': 'oa:Annotation',
+            '@context': CONTEXT,
+            '@id': '%s/annotation' % identifier,
+            'motivation': "sc:painting",
+            'resource': {
+                '@id': '%s/full/full/0/default.jpg' % identifier,
+                '@type': 'dctypes:Image',
+                'width': width,
+                'height': height,
+                'format': 'image/jpeg',
+                'service': {
+                    '@context': CONTEXT,
+                    '@id': identifier,
+                    'profile': 'http://iiif.io/api/image/2/profiles/level2.json',
+                }
+            }                    
+        }]
+    }
 
 def create_manifest(identifier, domain=None):
-    manifest = {}
+    manifest = {
+        '@context': CONTEXT,
+        '@id': '%s%s/manifest.json' % (domain, identifier),
+        '@type': 'sc:Manifest',
+        'logo': 'http://tinyurl.com/ou7efql',
+            'sequences': [
+                {
+                    '@id': '%s%s/canvas/default' % (domain, identifier),
+                    '@type': 'sc:Sequence',
+                    '@context': CONTEXT,
+                    'label': 'default',
+                    'canvases': []
+                }
+            ],
+        'viewingHint': 'paged',
+    }
     path = os.path.join(media_root, identifier)
-    metadata = requests.get('%s/metadata/%s' % (archive, identifier)).json()
+    metadata = requests.get('%s/metadata/%s' % (ARCHIVE, identifier)).json()
     mediatype = metadata['metadata']['mediatype']
+    manifest['label'] = metadata['metadata']['title']
 
-    if mediatype.lower() == 'texts':
+    if mediatype.lower() == 'image':
+        path, mediatype = ia_resolver(identifier)
+        info = web.info(domain, path)
+        manifest['sequences'][0]['canvases'].append(
+            manifest_page(
+                identifier="%s/%s" % (domain, identifier),
+                label=metadata['metadata']['title'],
+                width=info['width'],
+                height=info['height']
+            )
+        )
+
+    elif mediatype.lower() == 'texts':
         subPrefix = metadata['dir']
-        server = metadata.get('server', 'https://archive.org')
+        server = metadata.get('server', ARCHIVE)
 
         r = requests.get(bookdata % server, params={
             'server': server,
@@ -26,56 +82,24 @@ def create_manifest(identifier, domain=None):
             'itemId': identifier
         })
         data = r.json()
-        context = 'http://iiif.io/api/image/2/context.json'
-        manifest = {
-            '@context': context,
-            '@id': '%s%s/manifest.json' % (domain, identifier),
-            '@type': 'sc:Manifest',
-            'logo': 'http://tinyurl.com/ou7efql',
+
+        manifest.update({
             'label': data['title'],
-            'viewingHint': 'paged',
-            'sequences': [
-                {
-                    '@id': '%s%s/canvas/default' % (domain, identifier),
-                    '@type': 'sc:Sequence',
-                    '@context': context,
-                    'label': 'default',
-                    'canvases': []
-                }
-            ],
             'thumbnail': {
                 '@id': data['previewImage']
             },
-        }
+        })
+        
         for page in range(1, len(data.get('leafNums', []))):
-            manifest['sequences'][0]['canvases'].append({
-                '@id': '%s%s$%s/canvas' % (domain, identifier, page),
-                '@type': 'sc:Sequence',
-                'label': data['pageNums'][page],
-                'width': data['pageWidths'][page],
-                'height': data['pageHeights'][page],
-                'images': [{
-                    'type': 'oa:Annotation',
-                    '@context': context,
-                    '@id': '%s%s$%s/annotation' % (domain, identifier, page),
-                    'motivation': "sc:painting",
-                    'resource': {
-                        '@id': '%s%s$%s/full/full/0/default.jpg' % \
-                        (domain, identifier, page),
-                        '@type': 'dctypes:Image',
-                        'width': data['pageWidths'][page],
-                        'height': data['pageHeights'][page],
-                        'format': 'image/jpeg',
-                        'service': {
-                            '@context': context,
-                            '@id': '%s%s$%s' % \
-                            (domain, identifier, page),
-                            'profile': 'http://iiif.io/api/image/2/profiles/level2.json',
-                        }
-                    }                    
-                }]
-            })
-        return manifest
+            manifest['sequences'][0]['canvases'].append(
+                manifest_page(
+                    identifier = "%s/%s$%s" % (domain, identifier, page),
+                    label=data['pageNums'][page],
+                    width=data['pageWidths'][page],
+                    height=data['pageHeights'][page]
+                )
+            )
+    return manifest
         
 def valid_filetype(filename):
     f = filename.lower()
@@ -94,10 +118,9 @@ def ia_resolver(identifier):
     if "$" in identifier:
         identifier, leaf = identifier.split("$")
 
-    metadata = requests.get('%s/metadata/%s' % (archive, identifier)).json()
-
+    metadata = requests.get('%s/metadata/%s' % (ARCHIVE, identifier)).json()
     if 'dir' not in metadata:
-        raise Exception("No such valid Archive.org item identifier: %s" \
+        raise ValueError("No such valid Archive.org item identifier: %s" \
                         % identifier)
     mediatype = metadata['metadata']['mediatype']
     files = metadata['files']
@@ -107,12 +130,12 @@ def ia_resolver(identifier):
         if mediatype.lower() == 'image':
             f = next(f for f in files if valid_filetype(f['name']) \
                          and f['source'].lower() == 'original')
-            url = '%s/download/%s/%s' % (archive, identifier, f['name'])
+            url = '%s/download/%s/%s' % (ARCHIVE, identifier, f['name'])
 
             r = requests.get(url, stream=True, allow_redirects=True)
 
         elif mediatype.lower() == 'texts' and leaf:
-            r = requests.get('%s/download/%s/page/leaf%s' % (archive, identifier, leaf))
+            r = requests.get('%s/download/%s/page/leaf%s' % (ARCHIVE, identifier, leaf))
         if r:
             with open(path, 'wb') as rc:
                 rc.writelines(r.iter_content(chunk_size=1024))
