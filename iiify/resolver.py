@@ -14,7 +14,7 @@ valid_filetypes = ['jpg', 'jpeg', 'png', 'gif', 'tif', 'jp2', 'pdf']
 def manifest_page(identifier, label="", page="", width="", height=""):
     return {
         '@id': '%s/canvas' % identifier,
-        '@type': 'sc:Sequence',
+        '@type': 'sc:Canvas',
         'label': label,
         'width': width,
         'height': height,
@@ -34,7 +34,7 @@ def manifest_page(identifier, label="", page="", width="", height=""):
                     '@id': identifier,
                     'profile': 'http://iiif.io/api/image/2/profiles/level2.json',
                 }
-            }                    
+            }
         }]
     }
 
@@ -89,7 +89,7 @@ def create_manifest(identifier, domain=None):
                 '@id': data['previewImage']
             },
         })
-        
+
         for page in range(1, len(data.get('leafNums', []))):
             manifest['sequences'][0]['canvases'].append(
                 manifest_page(
@@ -100,7 +100,7 @@ def create_manifest(identifier, domain=None):
                 )
             )
     return manifest
-        
+
 def valid_filetype(filename):
     f = filename.lower()
     return any(f.endswith('.%s' % ext) for ext in valid_filetypes)
