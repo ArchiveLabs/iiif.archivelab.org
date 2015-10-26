@@ -3,7 +3,7 @@
 import os
 import requests
 from iiif2 import iiif, web
-from configs import options, cors, approot, cache_root, media_root
+from configs import options, cors, approot, cache_root, media_root, apiurl
 
 CONTEXT = 'http://iiif.io/api/image/2/context.json'
 ARCHIVE = 'http://archive.org'
@@ -11,7 +11,32 @@ bookdata = 'http://%s/BookReader/BookReaderJSON.php'
 bookreader = "http://%s/BookReader/BookReaderImages.php"
 valid_filetypes = ['jpg', 'jpeg', 'png', 'gif', 'tif', 'jp2', 'pdf']
 
-def manifest_page(identifier, label="", page="", width="", height=""):
+
+def getids(page=1, limit=50):
+    r = requests.get('%s/iiif' % apiurl, params={
+        'page': page,
+        'limit': limit
+    }, allow_redirects=True, timeout=None)
+    return r.json()
+    
+
+def collection(domain, identifiers, label='Custom Archive.org IIIF Collection'):
+    cs = {
+        '@context': CONTEXT,
+        '@id': "%scollection.json" % domain,
+        '@type': 'sc:Collection',
+        'label': label,
+        'collections': []
+    }
+    for i in identifiers:
+        cs['collections'].append({
+            'id': '%s%s/manifest.json' % (domain, i),
+            '@type': 'sc:Collection',
+            'label': ''
+        })
+    return cs
+
+def manifest_page(identifier, label='', page='', width='', height=''):
     return {
         '@id': '%s/canvas' % identifier,
         '@type': 'sc:Canvas',
@@ -65,7 +90,7 @@ def create_manifest(identifier, domain=None):
         info = web.info(domain, path)
         manifest['sequences'][0]['canvases'].append(
             manifest_page(
-                identifier="%s/%s" % (domain, identifier),
+                identifier="%s%s" % (domain, identifier),
                 label=metadata['metadata']['title'],
                 width=info['width'],
                 height=info['height']
@@ -93,7 +118,7 @@ def create_manifest(identifier, domain=None):
         for page in range(1, len(data.get('leafNums', []))):
             manifest['sequences'][0]['canvases'].append(
                 manifest_page(
-                    identifier = "%s/%s$%s" % (domain, identifier, page),
+                    identifier = "%s%s$%s" % (domain, identifier, page),
                     label=data['pageNums'][page],
                     width=data['pageWidths'][page],
                     height=data['pageHeights'][page]

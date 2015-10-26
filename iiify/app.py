@@ -5,45 +5,48 @@ import requests
 from flask import Flask, send_file, jsonify, abort, request, render_template
 from flask.ext.cors import CORS
 from iiif2 import iiif, web
-from resolver import ia_resolver, create_manifest
+from resolver import ia_resolver, create_manifest, getids, collection
 from configs import options, cors, approot, cache_root, media_root, \
-    cache_expr, version, apiurl
+    cache_expr, version
 
 
 app = Flask(__name__)
 cors = CORS(app) if cors else None
 
 
-@app.route('/')
+@app.route('/iiif/')
 def index():
     """Lists all available book and image items on Archive.org"""
     page = request.args.get("page", 1)
     limit = min(int(request.args.get("limit", 50)), 100)
-    r = requests.get("%s/items" % apiurl, params={
-        "page": page,
-        "limit": limit,
-        "filters": "(mediatype:(texts) OR mediatype:(image))"
-    })
-    return jsonify(r.json())
+    return jsonify(getids(page=page, limit=limit))
 
 
-@app.route('/cache')
+@app.route('/iiif/collection.json')
+def catalog():
+    page = request.args.get("page", 1)
+    limit = min(int(request.args.get("limit", 50)), 100)
+    domain = request.args.get('domain', request.url_root)    
+    return ldjsonify(collection(domain, getids(page=page, limit=limit)['ids']))
+        
+
+@app.route('/iiif/cache')
 def cache():
     """Lists all recently cached images"""
     return jsonify({'identifiers': [f for f in os.listdir(media_root)]})
 
 
-@app.route('/demo')
+@app.route('/iiif/demo')
 def demo():
     domain = "http://purl.stanford.edu/kq131cs7229/iiif"
     return render_template('reader.html', domain=domain)
 
-@app.route('/documentation')
+@app.route('/iiif/documentation')
 def documentation():
     return render_template('docs/index.html', version=version)
 
 
-@app.route('/<identifier>')
+@app.route('/iiif/<identifier>')
 def view(identifier):
     domain = request.args.get('domain', request.url_root)
     uri = '%s%s' % (domain, identifier)
@@ -57,7 +60,7 @@ def view(identifier):
     return render_template('reader.html', domain=request.base_url)
 
 
-@app.route('/<identifier>/manifest.json')
+@app.route('/iiif/<identifier>/manifest.json')
 def manifest(identifier):
     domain = request.args.get('domain', request.url_root)
     try:
@@ -66,7 +69,7 @@ def manifest(identifier):
         abort(404)
 
 
-@app.route('/<identifier>/info.json')
+@app.route('/iiif/<identifier>/info.json')
 def info(identifier):
     try:
         path, mediatype = ia_resolver(identifier)
@@ -80,7 +83,7 @@ def info(identifier):
         abort(400)  # , "Invalid item, may actually be collection")
 
 
-@app.route('/<identifier>/<region>/<size>/<rotation>/<quality>.<fmt>')
+@app.route('/iiif/<identifier>/<region>/<size>/<rotation>/<quality>.<fmt>')
 def image_processor(identifier, **kwargs):
     cache_path = os.path.join(cache_root, web.urihash(request.path))
 
