@@ -1,5 +1,5 @@
 # iiify
-A simple Python Flask-based implementation of the IIIF Image API 2.0 standard
+A simple Python Flask-based implementation of the IIIF Image API 1.0 standard
 
 ## Notes
 * This started as a toy project to learn the IIIF API, so it is not necessarily ready for production, but may be some day.
@@ -11,28 +11,25 @@ A simple Python Flask-based implementation of the IIIF Image API 2.0 standard
 * It was a lot of fun, and does work, but is missing a lot of optimizations.
 * There are several sample files in the media directory - all but one are courtesy of the Getty's Open Content Program.
 
-## Simple instructions
+## Installation & Setup
 ```
-pip install Flask Pillow
-python iiify.py
+git clone https://github.com/ArchiveLabs/iiif.archivelab.org.git
+cd iiif.archivelab.org
+pip install .
+cd iiify
+python app.py
 ```
-
-## Less simple instructions
-1. Clone this repo
-2. Setup a virtualenv (optional)
-3. do `pip install Flask Pillow`
-4. do `python iiify.py`
-5. You now have a simple IIIF server running at http://127.0.0.1:5000
+Navigate to http://127.0.0.1:8080
 
 ## Test it!
 
 Retrieve large.jpg as 800px wide JPEG
-* http://127.0.0.1:5000/large.jpg/full/800,/0/default.jpg 
+* http://127.0.0.1:8080/iiif/large.jpg/full/800,/0/default.jpg 
 
 Crop into large.jpg and return 800px wide JPEG
-* http://127.0.0.1:5000/large.jpg/full/800,/0/default.jpg 
+* http://127.0.0.1:8080/iiif/large.jpg/full/800,/0/default.jpg 
 
 Mirror large.jpg horizontally and return 800px wide JPEG
-* http://127.0.0.1:5000/large.jpg/full/800,/!0/default.jpg 
+* http://127.0.0.1:8080/iiif/large.jpg/full/800,/!0/default.jpg 
 
 For more information, read the specification at http://iiif.io/technical-details.html
