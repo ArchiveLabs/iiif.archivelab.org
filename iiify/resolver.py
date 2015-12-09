@@ -31,7 +31,7 @@ def collection(domain, identifiers, label='Custom Archive.org IIIF Collection'):
     for i in identifiers:
         cs['collections'].append({
             'id': '%s%s/manifest.json' % (domain, i),
-            '@type': 'sc:Collection',
+            '@type': 'sc:Manifest',
             'label': ''
         })
     return cs
@@ -149,6 +149,15 @@ def ia_resolver(identifier):
                         % identifier)
     mediatype = metadata['metadata']['mediatype']
     files = metadata['files']
+    collections = metadata['metadata']['collection']
+    collections = [collections] if isinstance(collections, str) else collections
+
+    # If item in restricted collection, raise permission error
+    for i in collections:
+        metadata_url = '%s/metadata/%s' % (ARCHIVE, i)
+        c = requests.get(metadata_url).json().get('metadata', {})
+        if c.get('access-restricted', False):
+            raise ValueError("This resource has restricted access")
 
     if not os.path.exists(path):
         r = None

@@ -21,7 +21,6 @@ def index():
     limit = min(int(request.args.get("limit", 50)), 100)
     return jsonify(getids(page=page, limit=limit))
 
-
 @app.route('/iiif/collection.json')
 def catalog():
     page = request.args.get("page", 1)
@@ -62,7 +61,7 @@ def view(identifier):
 
 @app.route('/iiif/<identifier>/manifest.json')
 def manifest(identifier):
-    domain = request.args.get('domain', request.url_root)
+    domain = request.args.get('domain', request.url_root) + "iiif/"
     try:
         return ldjsonify(create_manifest(identifier, domain=domain))
     except:
@@ -76,7 +75,7 @@ def info(identifier):
     except ValueError:
         abort(404)
     try:
-        domain = '%s%s' % (request.url_root, identifier)
+        domain = '%siiif/%s' % (request.url_root, identifier)
         info = web.info(domain, path)
         return ldjsonify(info)
     except:
@@ -112,6 +111,7 @@ def add_header(response):
 
 def ldjsonify(data):
     j = jsonify(data)
+    j.headers.set('Access-Control-Allow-Origin', '*')
     j.mimetype = "application/ld+json"
     return j
 
