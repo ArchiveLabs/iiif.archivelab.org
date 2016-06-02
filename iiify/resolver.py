@@ -5,7 +5,8 @@ import requests
 from iiif2 import iiif, web
 from configs import options, cors, approot, cache_root, media_root, apiurl
 
-CONTEXT = 'http://iiif.io/api/image/2/context.json'
+IMAGE_CONTEXT = 'http://iiif.io/api/image/2/context.json'
+PREZI_CONTEXT = 'http://iiif.io/api/presentation/2/context.json'
 ARCHIVE = 'http://archive.org'
 bookdata = 'http://%s/BookReader/BookReaderJSON.php'
 bookreader = "http://%s/BookReader/BookReaderImages.php"
@@ -22,7 +23,7 @@ def getids(page=1, limit=50):
 
 def collection(domain, identifiers, label='Custom Archive.org IIIF Collection'):
     cs = {
-        '@context': CONTEXT,
+        '@context': PREZI_CONTEXT,
         '@id': "%scollection.json" % domain,
         '@type': 'sc:Collection',
         'label': label,
@@ -45,7 +46,7 @@ def manifest_page(identifier, label='', page='', width='', height=''):
         'height': height,
         'images': [{
             'type': 'oa:Annotation',
-            '@context': CONTEXT,
+            '@context': IMAGE_CONTEXT,
             '@id': '%s/annotation' % identifier,
             'motivation': "sc:painting",
             'resource': {
@@ -55,7 +56,7 @@ def manifest_page(identifier, label='', page='', width='', height=''):
                 'height': height,
                 'format': 'image/jpeg',
                 'service': {
-                    '@context': CONTEXT,
+                    '@context': IMAGE_CONTEXT,
                     '@id': identifier,
                     'profile': 'http://iiif.io/api/image/2/profiles/level2.json',
                 }
@@ -65,7 +66,7 @@ def manifest_page(identifier, label='', page='', width='', height=''):
 
 def create_manifest(identifier, domain=None):
     manifest = {
-        '@context': CONTEXT,
+        '@context': IMAGE_CONTEXT,
         '@id': '%s%s/manifest.json' % (domain, identifier),
         '@type': 'sc:Manifest',
         'logo': 'http://tinyurl.com/ou7efql',
@@ -73,7 +74,7 @@ def create_manifest(identifier, domain=None):
                 {
                     '@id': '%s%s/canvas/default' % (domain, identifier),
                     '@type': 'sc:Sequence',
-                    '@context': CONTEXT,
+                    '@context': IMAGE_CONTEXT,
                     'label': 'default',
                     'canvases': []
                 }
