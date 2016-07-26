@@ -81,7 +81,8 @@ def create_manifest(identifier, domain=None):
                 }
             ],
         'viewingHint': 'paged',
-        'attribution': "The Internet Archive"
+        'attribution': "The Internet Archive",
+        'seeAlso': '%s/metadata/%s' % (ARCHIVE, identifier)
     }
     path = os.path.join(media_root, identifier)
     resp = requests.get('%s/metadata/%s' % (ARCHIVE, identifier)).json()
