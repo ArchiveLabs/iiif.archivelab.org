@@ -30,7 +30,7 @@ def collection(domain, identifiers, label='Custom Archive.org IIIF Collection'):
     }
     for i in identifiers:
         cs['collections'].append({
-            'id': '%s%s/manifest.json' % (domain, i),
+            '@id': '%s%s/manifest.json' % (domain, i),
             '@type': 'sc:Manifest',
             'label': ''
         })
@@ -44,7 +44,7 @@ def manifest_page(identifier, label='', page='', width='', height=''):
         'width': width,
         'height': height,
         'images': [{
-            'type': 'oa:Annotation',
+            '@type': 'oa:Annotation',
             '@context': CONTEXT,
             '@id': '%s/annotation' % identifier,
             'motivation': "sc:painting",
