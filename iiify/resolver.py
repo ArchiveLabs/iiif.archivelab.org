@@ -7,6 +7,7 @@ from configs import options, cors, approot, cache_root, media_root, apiurl
 
 CONTEXT = 'http://iiif.io/api/image/2/context.json'
 ARCHIVE = 'http://archive.org'
+METADATA_FIELDS = ("title", "volume", "publisher", "subject", "date", "contributor", "creator")
 bookdata = 'http://%s/BookReader/BookReaderJSON.php'
 bookreader = "http://%s/BookReader/BookReaderImages.php"
 valid_filetypes = ['jpg', 'jpeg', 'png', 'gif', 'tif', 'jp2', 'pdf']
@@ -18,7 +19,7 @@ def getids(page=1, limit=50):
         'limit': limit
     }, allow_redirects=True, timeout=None)
     return r.json()
-    
+
 
 def collection(domain, identifiers, label='Custom Archive.org IIIF Collection'):
     cs = {
@@ -63,6 +64,7 @@ def manifest_page(identifier, label='', page='', width='', height=''):
         }]
     }
 
+
 def create_manifest(identifier, domain=None):
     manifest = {
         '@context': CONTEXT,
@@ -79,11 +81,23 @@ def create_manifest(identifier, domain=None):
                 }
             ],
         'viewingHint': 'paged',
+        'attribution': "The Internet Archive"
     }
     path = os.path.join(media_root, identifier)
-    metadata = requests.get('%s/metadata/%s' % (ARCHIVE, identifier)).json()
-    mediatype = metadata['metadata']['mediatype']
-    manifest['label'] = metadata['metadata']['title']
+    resp = requests.get('%s/metadata/%s' % (ARCHIVE, identifier)).json()
+    metadata = resp.get("metadata", {})
+
+    mediatype = metadata.get("mediatype")
+
+    if 'title' in metadata:
+        manifest['label'] = metadata['title']
+    if 'identifier-access' in metadata:
+        manifest['related'] = metadata['identifier-access']
+    if 'description' in metadata:
+        manifest['description'] = coerce_list(metadata['description'])
+
+    manifest['metadata'] = [{"label": field, "value": coerce_list(metadata[field])}
+                            for field in METADATA_FIELDS if metadata.get(field)]
 
     if mediatype.lower() == 'image':
         path, mediatype = ia_resolver(identifier)
@@ -91,15 +105,15 @@ def create_manifest(identifier, domain=None):
         manifest['sequences'][0]['canvases'].append(
             manifest_page(
                 identifier="%s%s" % (domain, identifier),
-                label=metadata['metadata']['title'],
+                label=metadata['title'],
                 width=info['width'],
                 height=info['height']
             )
         )
 
     elif mediatype.lower() == 'texts':
-        subPrefix = metadata['dir']
-        server = metadata.get('server', ARCHIVE)
+        subPrefix = resp['dir']
+        server = resp.get('server', ARCHIVE)
 
         r = requests.get(bookdata % server, params={
             'server': server,
@@ -125,6 +139,13 @@ def create_manifest(identifier, domain=None):
                 )
             )
     return manifest
+
+
+def coerce_list(value):
+    if isinstance(value, list):
+        return ". ".join(value)
+    return value
+
 
 def valid_filetype(filename):
     f = filename.lower()
