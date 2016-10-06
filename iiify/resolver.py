@@ -116,6 +116,8 @@ def create_manifest(identifier, domain=None):
         subPrefix = resp['dir']
         server = resp.get('server', ARCHIVE)
 
+        # XXX Use https://api.archivelab.org/books/:id/metadata API
+
         r = requests.get(bookdata % server, params={
             'server': server,
             'itemPath': subPrefix,
@@ -161,9 +163,15 @@ def ia_resolver(identifier):
     fetches it, if it doesn't exist on disk..
     """
     path = os.path.join(media_root, identifier)
+
     leaf = None
-    if "$" in identifier:
-        identifier, leaf = identifier.split("$")
+    if "$" not in identifier:
+        filepath = None
+    else:
+        identifier, filepath = identifier.split("$", 1)
+        filepath = filepath.replace("$", os.sep)
+        if os.sep not in filepath:
+            leaf = filepath
 
     metadata = requests.get('%s/metadata/%s' % (ARCHIVE, identifier)).json()
     if 'dir' not in metadata:
@@ -184,9 +192,14 @@ def ia_resolver(identifier):
     if not os.path.exists(path):
         r = None
         if mediatype.lower() == 'image':
-            f = next(f for f in files if valid_filetype(f['name']) \
+            if filepath:
+                itempath = os.path.join(identifier, filepath)
+            else:
+                f = next(f for f in files if valid_filetype(f['name']) \
                          and f['source'].lower() == 'original')
-            url = '%s/download/%s/%s' % (ARCHIVE, identifier, f['name'])
+                itempath = os.path.join(identifier, f['name'])
+
+            url = '%s/download/%s' % (ARCHIVE, itempath)
 
             r = requests.get(url, stream=True, allow_redirects=True)
 
