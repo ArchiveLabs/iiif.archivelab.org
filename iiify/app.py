@@ -37,7 +37,7 @@ def cache():
 
 @app.route('/iiif/demo')
 def demo():
-    domain = "http://purl.stanford.edu/kq131cs7229/iiif"
+    domain = "http://dms-data.stanford.edu/data/manifests/Stanford/ege1"
     return render_template('reader.html', domain=domain)
 
 @app.route('/iiif/documentation')

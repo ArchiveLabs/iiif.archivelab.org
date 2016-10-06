@@ -55,7 +55,7 @@ if not os.path.isabs(cache_root):
 if not os.path.exists(cache_root):
     os.makedirs(cache_root)
 
-cache_expr = int(config.getdef('cache', 'expire_minutes', 30))
+cache_expr = int(config.getdef('cache', 'expire_seconds', 900))
 
 version = int(config.getdef('api', 'version', 1))
 apiurl = config.getdef('api', 'url', "http://api.archivelabs.org")

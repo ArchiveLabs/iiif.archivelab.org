@@ -7,12 +7,14 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" type="text/css" href="{{ request.url_root }}static/mirador/css/mirador-combined.css"/>
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css"/>
 	<style type="text/css">
-	  body { padding: 0; margin: 0; overflow: hidden; width: 100%; height: 100%;font-size: 70%; }
+	  body { padding: 0; margin: 0; overflow: hidden; width: 100%; height: 100%;}
 	  #viewer { background: #333; width: 100%; height: 100%; position: fixed; }
 	</style>
         <meta content="IIIF Image Server 2.0 with Mirador." name="description">
 	<script type="text/javascript" src="{{ request.url_root }}static/mirador/mirador.js"/></script>
+	<script type="text/javascript" src="{{ request.url_root }}static/scripts/annotations.js"/></script>
     </head>
     <body>
         <!--[if lt IE 8]>
@@ -21,17 +23,26 @@
 	<div id="viewer"></div>
 	<script type="text/javascript">
 	  $(function() {
-    	    Mirador({
-              "id": "viewer",
-              "layout": "1x1",
-              "data": [ 
-                { "manifestUri": "{{ domain }}/manifest.json", "location": "Internet Archive"}
-              ],	  
-              "windowObjects": [{
-                 "viewType": "BookView",
-                 "loadedManifest": "{{ domain }}/manifest.json",
-              }]
-            });
+    	      Mirador({
+		  "id": "viewer",
+		  "layout": "1x1",
+		  "buildPath": "/static/styles/",
+		  "data": [{
+                      "manifestUri": "{{ domain }}/manifest.json", "location": "Internet Archive"
+		  }],
+		  "windowObjects": [{
+		      "viewType": "ImageView",
+                      //"viewType": "BookView",
+                      "loadedManifest": "{{ domain }}/manifest.json",
+		      "annotationLayer": true,
+		      "annotationCreation": true,
+		      "annotationState": "annoOncreateOn"
+		  }],
+		  "annotationEndpoint": {
+		      "name": "Local Storage",
+		      "module": "PragmaEndpoint"
+		  }
+              });
 	  });
 	</script>
     </body>
