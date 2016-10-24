@@ -37,21 +37,30 @@
     search: function(options, successCallback, errorCallback) {
       var _this = this;
 
+      console.log(options);
+
       //use options.uri
       jQuery.ajax({
-        url: 'https://pragma.archivelab.org',
+        url: 'https://pragma.archivelab.org/annotations?canvas_id=' +  options.uri,
         type: 'GET',
         dataType: 'json',
         headers: { },
-        data: { },
+        data: { 
+	    canvas_id: options.uri
+	},
         contentType: "application/json; charset=utf-8",
         success: function(data) {
+
+	  data = data.annotations;
+
           //check if a function has been passed in, otherwise, treat it as a normal search
           if (typeof successCallback === "function") {
             successCallback(data);
           } else {
+	    _this.annotationsList = [];
             jQuery.each(data, function(index, value) {
-              _this.annotationsList.push(_this.getAnnotationInOA(value));
+		console.log(value.annotation);
+              _this.annotationsList.push(value.annotation);
             });
             _this.dfd.resolve(true);
           }
@@ -68,7 +77,7 @@
     deleteAnnotation: function(annotationID, successCallback, errorCallback) {
       var _this = this;        
       jQuery.ajax({
-        url: 'https://pragma.archivelab.org',
+        url: 'https://pragma.archivelab.org/annotations',
         type: 'DELETE',
         dataType: 'json',
         headers: { },
@@ -92,11 +101,11 @@
       _this = this;
       
       jQuery.ajax({
-        url: 'https://pragma.archivelab.org',
+        url: 'https://pragma.archivelab.org/annotations',
         type: 'POST',
         dataType: 'json',
         headers: { },
-        data: '',
+        data: oaAnnotation,
         contentType: "application/json; charset=utf-8",
         success: function(data) {
           if (typeof successCallback === "function") {
@@ -115,20 +124,23 @@
     //if successful, MUST return the OA rendering of the annotation
     create: function(oaAnnotation, successCallback, errorCallback) {
       var _this = this;
-      
+      console.log(oaAnnotation);
       jQuery.ajax({
-        url: 'https://pragma.archivelab.org',
+        url: 'https://pragma.archivelab.org/annotations',
         type: 'POST',
         dataType: 'json',
         headers: { },
-        data: '',
+        data: JSON.stringify(oaAnnotation),
+        processData: false,
         contentType: "application/json; charset=utf-8",
         success: function(data) {
+	  data = data.annotation;
           if (typeof successCallback === "function") {
             successCallback(_this.getAnnotationInOA(data));
           }
         },
         error: function() {
+	  console.log("wreck yourself");
           if (typeof errorCallback === "function") {
             errorCallback();
           }
