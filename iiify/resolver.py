@@ -70,7 +70,7 @@ def create_manifest(identifier, domain=None):
         '@context': CONTEXT,
         '@id': '%s%s/manifest.json' % (domain, identifier),
         '@type': 'sc:Manifest',
-        'logo': 'http://tinyurl.com/ou7efql',
+        'logo': 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcReMN4l9cgu_qb1OwflFeyfHcjp8aUfVNSJ9ynk2IfuHwW1I4mDSw',
             'sequences': [
                 {
                     '@id': '%s%s/canvas/default' % (domain, identifier),
