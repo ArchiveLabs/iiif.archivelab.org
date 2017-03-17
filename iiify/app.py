@@ -17,16 +17,16 @@ cors = CORS(app) if cors else None
 @app.route('/iiif/')
 def index():
     """Lists all available book and image items on Archive.org"""
-    page = request.args.get("page", 1)
-    limit = min(int(request.args.get("limit", 50)), 100)
-    return jsonify(getids(page=page, limit=limit))
+    cursor = request.args.get('cursor', '')
+    q = request.args.get('q', '')
+    return jsonify(getids(q, cursor=cursor))
 
 @app.route('/iiif/collection.json')
 def catalog():
-    page = request.args.get("page", 1)
-    limit = min(int(request.args.get("limit", 50)), 100)
+    cursor = request.args.get('cursor', '')
+    q = request.args.get('q', '')
     domain = request.args.get('domain', request.url_root)    
-    return ldjsonify(collection(domain, getids(page=page, limit=limit)['ids']))
+    return ldjsonify(collection(domain, getids(q, limit, cursor)['ids']))
         
 
 @app.route('/iiif/cache')
@@ -40,6 +40,7 @@ def demo():
     domain = "http://dms-data.stanford.edu/data/manifests/Stanford/ege1"
     return render_template('reader.html', domain=domain)
 
+
 @app.route('/iiif/documentation')
 def documentation():
     return render_template('docs/index.html', version=version)
@@ -49,6 +50,8 @@ def documentation():
 def view(identifier):
     domain = request.args.get('domain', request.url_root)
     uri = '%s%s' % (domain, identifier)
+    page = request.args.get('page', None)
+    citation = request.args.get('citation', None)
     try:
         path, mediatype = ia_resolver(identifier)
     except ValueError:
@@ -56,16 +59,20 @@ def view(identifier):
     if mediatype == 'image' or '$' in identifier:
         return render_template('viewer.html', domain=domain,
                                info=web.info(uri, path))
-    return render_template('reader.html', domain=request.base_url)
+    return render_template('reader.html', domain=request.base_url, page=page, citation=citation)
 
 
 @app.route('/iiif/<identifier>/manifest.json')
 def manifest(identifier):
     domain = request.args.get('domain', request.url_root) + "iiif/"
-    try:
-        return ldjsonify(create_manifest(identifier, domain=domain))
-    except:
-        abort(404)
+    page = None
+    if '$' in identifier:
+        identifier, page = identifier.split('$')
+        page = int(page)
+    #try:
+    return ldjsonify(create_manifest(identifier, domain=domain, page=page))
+    #except:
+    #    abort(404)
 
 
 @app.route('/iiif/<identifier>/info.json')

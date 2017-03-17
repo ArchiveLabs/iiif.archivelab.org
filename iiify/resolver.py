@@ -13,10 +13,11 @@ bookreader = "http://%s/BookReader/BookReaderImages.php"
 valid_filetypes = ['jpg', 'jpeg', 'png', 'gif', 'tif', 'jp2', 'pdf']
 
 
-def getids(page=1, limit=50):
+def getids(q, limit=1000, cursor=''):
     r = requests.get('%s/iiif' % apiurl, params={
-        'page': page,
-        'limit': limit
+        'q': q,
+        'limit': limit,
+        'cursor': cursor
     }, allow_redirects=True, timeout=None)
     return r.json()
 
@@ -65,7 +66,7 @@ def manifest_page(identifier, label='', page='', width='', height=''):
     }
 
 
-def create_manifest(identifier, domain=None):
+def create_manifest(identifier, domain=None, page=None):
     manifest = {
         '@context': CONTEXT,
         '@id': '%s%s/manifest.json' % (domain, identifier),
@@ -100,6 +101,9 @@ def create_manifest(identifier, domain=None):
     manifest['metadata'] = [{"label": field, "value": coerce_list(metadata[field])}
                             for field in METADATA_FIELDS if metadata.get(field)]
 
+    if page and mediatype is None:
+        mediatype = 'image'
+
     if mediatype.lower() == 'image':
         path, mediatype = ia_resolver(identifier)
         info = web.info(domain, path)
@@ -131,6 +135,17 @@ def create_manifest(identifier, domain=None):
                 '@id': data['previewImage']
             },
         })
+
+        if page:
+            manifest['sequences'][0]['canvases'].append(
+                manifest_page(
+                    identifier = "%s%s$%s" % (domain, identifier, page),
+                    label=data['pageNums'][page],
+                    width=data['pageWidths'][page],
+                    height=data['pageHeights'][page]
+                )
+            )
+            return manifest
 
         for page in range(1, len(data.get('leafNums', []))):
             manifest['sequences'][0]['canvases'].append(
