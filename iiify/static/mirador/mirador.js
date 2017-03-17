@@ -44921,7 +44921,7 @@ return paper;
         return deferred;
       });
       jQuery.when.apply(jQuery, deferreds).done(function() {
-        _this.eventEmitter.publish('overlaysRendered.' + _this.windowId);
+        _this.eventEmitter.publish('overlaysRendered.' + _this.windowId);	  
       });
 
       var windowElement = _this.state.getWindowElement(_this.windowId);
@@ -44969,9 +44969,10 @@ return paper;
               annotations.push(shapeArray[idx].data.annotation);
               if(shapeTool.onHover){
                 for(var k=0;k<shapeArray.length;k++){
+		    // XXX
                   shapeTool.onHover(true,shapeArray[k],hoverColor);
-                }
-              }
+		}
+	      }
               break;
             }else{
               if(shapeTool.onHover){

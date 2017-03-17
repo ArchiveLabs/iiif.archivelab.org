@@ -158,10 +158,12 @@
 
     //Convert Endpoint annotation to OA
     getAnnotationInOA: function(annotation) {
+	return annotation;
     },
 
     // Converts OA Annotation to endpoint format
     getAnnotationInEndpoint: function(oaAnnotation) {
+	return oaAnnotation;
     }
   };
 

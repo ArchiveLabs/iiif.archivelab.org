@@ -8,27 +8,167 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta content="IIIF Image Server 2.0 with Openseadragon." name="description">
 	<link href="{{ request.url_root }}static/styles/style.css" rel="stylesheet" type="text/css" />
+	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.js"></script>
 	<script src="{{ request.url_root }}static/scripts/openseadragon/openseadragon.min.js"></script>
+
+	<style type="text/css">
+ body {
+          position:relative;
+        }
+        .pageTitle {
+        }
+        p {
+
+        }
+        .container {
+            width: 100%;
+            height: 100%;
+            margin:0 auto;
+            box-sizing: border-box;
+            padding: 5% 10%;
+        }
+        .osd-container {
+            width: 100%;
+            height: 400px;
+            margin:0 auto;
+            margin-top: 5%;
+        }
+        .button-container {
+            margin: 0 auto;
+            text-align: center;
+        }
+        .iiif-crop-selection {
+            position:absolute;
+            background-color: rgba(255,255,255,0.1);
+            border: 2px solid white;
+            /*
+            The following shadow makes up the
+            "mask" that sits over the rest of
+            the canvas around the selected area.
+            The first parameter prevents the shadow
+            from "spreading", making it opaque.
+            */
+            box-shadow: 0 0 0 10000px rgba(0,0,0,0.5);
+            cursor: move;
+            transition: opacity 0.2s ease-out;
+            opacity:1;
+            pointerevents:none;
+        }
+        .iiif-crop-selection.disabled {
+            transition: opacity 0.2s ease-out;
+            opacity:0;
+            pointerevents:none;
+        }
+        .iiif-crop-dragNode {
+            border:2px solid white;
+            border-radius: 20px;
+            height: 12px;
+            width: 12px;
+            box-sizing: border-box;
+        }
+        .iiif-crop-top-drag-handle {
+            position:absolute;
+            top:-7px;
+            width: 100%;
+            height: 14px;
+            cursor: ns-resize;
+        }
+        .iiif-crop-bottom-drag-handle {
+            position:absolute;
+            bottom:-7px;
+            width: 100%;
+            height: 14px;
+            cursor: ns-resize;
+        }
+        .iiif-crop-left-drag-handle {
+            position:absolute;
+            left:-7px;
+            width: 14px;
+            height: 100%;
+            cursor: ew-resize;
+        }
+        .iiif-crop-right-drag-handle {
+            position:absolute;
+            right:-7px;
+            width: 14px;
+            height: 100%;
+            cursor: ew-resize;
+        }
+        .iiif-crop-top-left-drag-node {
+            position:absolute;
+            top:-6px;
+            left:-6px;
+            cursor: nw-resize;
+        }
+        .iiif-crop-top-right-drag-node {
+            position:absolute;
+            top:-6px;
+            right:-6px;
+            cursor: ne-resize;
+        }
+        .iiif-crop-bottom-left-drag-node {
+            position:absolute;
+            bottom:-6px;
+            left:-6px;
+            cursor: sw-resize;
+        }
+        .iiif-crop-bottom-right-drag-node {
+            position:absolute;
+            bottom:-6px;
+            right:-6px;
+            cursor: se-resize;
+        }
+
+	</style>
     </head>
     <body>
         <!--[if lt IE 8]>
             <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
+	<script src="{{ request.url_root }}static/scripts/iiif-osd-crop.js"></script>
 	<div id="canvas" style="width: 100%; height: 100%;"></div>
+	<div style="position: fixed; top: 10px; right: 10px;">
+	  <button style="display: none" class="getRegion">Share Selected Region</button>
+	  <button class="toggleCropperEnabled" data-enabled="false">Enable Cropper</button>
+	</div>
 	<script type="text/javascript">
-	  var viewer = OpenSeadragon({
+	  var viewer = new OpenSeadragon({
 	    id: "canvas",
-	    tileSources: ["{{ info['@id'] }}/info.json"],
-	    resize: true,
 	    preserveViewport: true,
-	    visibilityRatio: 1,
-	    showNavigationControl: false
+	    showNavigationControl: false,
+	    resize: true,
+	    constrainDuringPan: true,
+	    tileSources: ["{{ info['@id'] }}/info.json"],
+	    visibilityRatio: 1
 	  });
 	  viewer.addHandler("open", function(){
   	    var bounds = viewer.world._items[0].getBounds();
  	    console.log(bounds);
 	    viewer.viewport.fitBounds(bounds, true);
 	  })
+  	  viewer.iiifCrop();
+          $('.iiif-crop-selection').addClass('disabled');
+
+$('.toggleCropperEnabled').on('click', function() {
+            var enabled = $(this).data('enabled');
+
+            if (enabled) {
+                $(this).data('enabled', false);
+                $('.iiif-crop-selection').addClass('disabled');
+                $(this).text('Enable Cropper');
+
+	        $(".getRegion").hide();
+            } else {
+                $(this).data('enabled', true);
+                $('.iiif-crop-selection').removeClass('disabled');
+                $(this).text('Disale Cropper');
+	        $(".getRegion").show();
+            }
+        });
+
+	  $('.getRegion').click(function() {
+	    alert(viewer.cropper.getIiifSelection().getUrl()); 
+	  });
 	</script>
     </body>
 </html>

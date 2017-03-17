@@ -1,0 +1,57 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>IIIF Image Server 2.0 + Cropbox</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta content="IIIF Image Server with Cropping." name="description">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.js"></script>
+	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/hammer.js/1.0.5/hammer.js"></script>
+	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery-mousewheel/3.1.6/jquery.mousewheel.js"></script>
+	<link type="text/css" media="screen" rel="stylesheet" href="//acornejo.github.io/jquery-cropbox/jquery.cropbox.css">
+	<script src="//acornejo.github.io/jquery-cropbox/jquery.cropbox.js"></script>
+    </head>
+    <body>
+        <!--[if lt IE 8]>
+            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+  <img id="iiif" alt="" src="{{ info['@id'] }}/full/full/0/default.jpg" cropwidth="200" cropheight="200"/>
+  <div class="results">
+    <b>X</b>: <span class="cropX"></span>
+    <b>Y</b>: <span class="cropY"></span>
+    <b>W</b>: <span class="cropW"></span>
+    <b>H</b>: <span class="cropH"></span>
+  </div>
+  <div class="download">
+    <a href="#" download="crop.png">Download</a>
+  </div>
+
+
+	<script type="text/javascript">
+    $( function () {
+      $( '#iiif' ).each( function () {
+        var image = $(this),
+            cropwidth = image.attr('cropwidth'),
+            cropheight = image.attr('cropheight'),
+            results = image.next('.results' ),
+            x       = $('.cropX', results),
+            y       = $('.cropY', results),
+            w       = $('.cropW', results),
+            h       = $('.cropH', results),
+            download = results.next('.download').find('a');
+
+          image.cropbox( {width: cropwidth, height: cropheight, showControls: 'auto' } )
+            .on('cropbox', function( event, results, img ) {
+              x.text( results.cropX );
+              y.text( results.cropY );
+              w.text( results.cropW );
+              h.text( results.cropH );
+              download.attr('href', img.getDataURL());
+            });
+      });
+});
+	</script>
+    </body>
+</html>
