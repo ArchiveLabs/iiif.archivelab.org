@@ -36,9 +36,9 @@ def find_version(*file_paths):
 
 setup(
     name='iiify',
-    version=find_version("iiify/configs", "__init__.py"),
+    version=find_version("iiify", "__init__.py"),
     description='An implementation of the IIIF Image API 2.0 Specification ',
-    long_description=read('README.rst'),
+    long_description=read('README.md'),
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Web Environment",
