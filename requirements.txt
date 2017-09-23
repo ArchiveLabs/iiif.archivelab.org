@@ -11,3 +11,5 @@ stevedore==1.2.0
 wsgiref==0.1.2
 iiif2==0.0.31
 flask-cors
+requests==2.18.4
+configparser==3.5.0
