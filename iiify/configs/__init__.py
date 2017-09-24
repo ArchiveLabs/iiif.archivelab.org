@@ -43,6 +43,7 @@ if CRT and KEY:
 # Especially useful for SeaDragon viewers running locally
 cors = bool(int(config.getdef('server', 'cors', 0)))
 
+iiif_domain = config.getdef('server', 'domain', 'https://iiif.archivelab.org')
 media_root = config.getdef('media', 'root', 'media')
 if not os.path.isabs(media_root):
     media = os.path.join(approot, media_root)
@@ -58,4 +59,8 @@ if not os.path.exists(cache_root):
 cache_expr = int(config.getdef('cache', 'expire_seconds', 900))
 
 version = int(config.getdef('api', 'version', 1))
-apiurl = config.getdef('api', 'url', "http://api.archivelabs.org")
+apiurl = config.getdef('api', 'url', "https://api.archivelab.org")
+
+# url2iiif
+s3key = config.getdef('url2iiif', 's3key', '')
+s3secret = config.getdef('url2iiif', 's3secret', '')

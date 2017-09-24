@@ -12,6 +12,8 @@ bookdata = 'http://%s/BookReader/BookReaderJSON.php'
 bookreader = "http://%s/BookReader/BookReaderImages.php"
 valid_filetypes = ['jpg', 'jpeg', 'png', 'gif', 'tif', 'jp2', 'pdf']
 
+def purify_domain(domain):
+    return domain if domain.endswith('/iiif/') else domain + 'iiif/'
 
 def getids(q, limit=1000, cursor=''):
     r = requests.get('%s/iiif' % apiurl, params={
@@ -202,6 +204,8 @@ def ia_resolver(identifier):
         metadata_url = '%s/metadata/%s' % (ARCHIVE, i)
         c = requests.get(metadata_url).json().get('metadata', {})
         if c.get('access-restricted', False):
+            # check for preview, e.g. etable of contents (which can be public?)
+            # ...
             raise ValueError("This resource has restricted access")
 
     if not os.path.exists(path):
@@ -213,13 +217,14 @@ def ia_resolver(identifier):
                 f = next(f for f in files if valid_filetype(f['name']) \
                          and f['source'].lower() == 'original')
                 itempath = os.path.join(identifier, f['name'])
-
             url = '%s/download/%s' % (ARCHIVE, itempath)
-
+            print(url)
             r = requests.get(url, stream=True, allow_redirects=True)
 
         elif mediatype.lower() == 'texts' and leaf:
-            r = requests.get('%s/download/%s/page/leaf%s' % (ARCHIVE, identifier, leaf))
+            url = '%s/download/%s/page/leaf%s' % (ARCHIVE, identifier, leaf)
+            print(url)
+            r = requests.get(url)
         if r:
             with open(path, 'wb') as rc:
                 rc.writelines(r.iter_content(chunk_size=1024))

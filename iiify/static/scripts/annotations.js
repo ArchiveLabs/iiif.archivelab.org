@@ -148,6 +148,10 @@
       });
     },
 
+    userAuthorize: function(){
+      return true;
+    },
+
     set: function(prop, value, options) {
       if (options) {
         this[options.parent][prop] = value;

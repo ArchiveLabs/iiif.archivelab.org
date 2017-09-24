@@ -1,18 +1,24 @@
 #!/usr/bin/env python
 
 import os
+import time
 import requests
-from flask import Flask, send_file, jsonify, abort, request, render_template
+from flask import Flask, send_file, jsonify, abort, request, render_template, redirect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask.ext.cors import CORS
 from iiif2 import iiif, web
-from resolver import ia_resolver, create_manifest, getids, collection
+from resolver import ia_resolver, create_manifest, getids, collection, \
+    purify_domain
+from url2iiif import url2ia
 from configs import options, cors, approot, cache_root, media_root, \
     cache_expr, version
 
 
 app = Flask(__name__)
 cors = CORS(app) if cors else None
-
+#limiter = Limiter(app, key_func=get_remote_address,
+#                  default_limits=['10000 per day', '1000 per hour'])
 
 @app.route('/iiif/')
 def index():
@@ -21,13 +27,26 @@ def index():
     q = request.args.get('q', '')
     return jsonify(getids(q, cursor=cursor))
 
+@app.route('/iiif/url2iiif')
+def url2iiif():
+    url = request.args.get('url', '')
+    if not url:
+        abort(400)
+    try:
+        domain = purify_domain(request.args.get('domain', request.url_root))
+        filehash = url2ia(url)
+        time.sleep(20)
+        return redirect('%surl2iiif$%s' % (domain, filehash))
+    except Exception as e:
+        print(e)
+        abort(400)
+
 @app.route('/iiif/collection.json')
 def catalog():
     cursor = request.args.get('cursor', '')
     q = request.args.get('q', '')
-    domain = request.args.get('domain', request.url_root)    
+    domain = purify_domain(request.args.get('domain', request.url_root))
     return ldjsonify(collection(domain, getids(q, limit, cursor)['ids']))
-        
 
 @app.route('/iiif/cache')
 def cache():
@@ -45,13 +64,13 @@ def demo():
 def documentation():
     return render_template('docs/index.html', version=version)
 
-
 @app.route('/iiif/<identifier>')
 def view(identifier):
-    domain = request.args.get('domain', request.url_root)
+    domain = purify_domain(request.args.get('domain', request.url_root))
     uri = '%s%s' % (domain, identifier)
     page = request.args.get('page', None)
     citation = request.args.get('citation', None)
+
     try:
         path, mediatype = ia_resolver(identifier)
     except ValueError:
@@ -64,7 +83,7 @@ def view(identifier):
 
 @app.route('/iiif/<identifier>/manifest.json')
 def manifest(identifier):
-    domain = request.args.get('domain', request.url_root) + "iiif/"
+    domain = purify_domain(request.args.get('domain', request.url_root))
     page = None
     if '$' in identifier:
         identifier, page = identifier.split('$')
@@ -82,7 +101,7 @@ def info(identifier):
     except ValueError:
         abort(404)
     try:
-        domain = '%siiif/%s' % (request.url_root, identifier)
+        domain = '%s%s' % (purify_domain(request.url_root), identifier)
         info = web.info(domain, path)
         return ldjsonify(info)
     except:

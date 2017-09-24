@@ -132,6 +132,22 @@
 	  <button class="toggleCropperEnabled" data-enabled="false">Enable Cropper</button>
 	</div>
 	<script type="text/javascript">
+          var getJsonFromUrl = function () {
+            var query = location.search.substr(1);
+            var result = {};
+            query.split("&").forEach(function(part) {
+              var item = part.split("=");
+              result[item[0]] = decodeURIComponent(item[1]);
+            });
+            return result;
+          }
+
+          var options = getJsonFromUrl();
+
+	  if(options.hideCropper) {
+	    $('.toggleCropperEnabled').hide();
+	  }
+
 	  var viewer = new OpenSeadragon({
 	    id: "canvas",
 	    preserveViewport: true,
@@ -161,7 +177,7 @@ $('.toggleCropperEnabled').on('click', function() {
             } else {
                 $(this).data('enabled', true);
                 $('.iiif-crop-selection').removeClass('disabled');
-                $(this).text('Disale Cropper');
+                $(this).text('Disable Cropper');
 	        $(".getRegion").show();
             }
         });

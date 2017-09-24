@@ -7,6 +7,7 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" type="text/css" href="{{ request.url_root }}static/mirador/css/mirador-combined.css"/>
+        <link rel="stylesheet" type="text/css" href="{{ request.url_root }}static/styles/crosslink.css"/>
         <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css"/>
         <style type="text/css">
           body { padding: 0; margin: 0; overflow: hidden; width: 100%; height: 100%;}
@@ -15,6 +16,7 @@
         <meta content="IIIF Image Server 2.0 with Mirador." name="description">
         <script type="text/javascript" src="{{ request.url_root }}static/mirador/mirador.js"/></script>
         <script type="text/javascript" src="{{ request.url_root }}static/scripts/annotations.js"/></script>
+        <script type="text/javascript" src="{{ request.url_root }}static/scripts/crosslink.js"/></script>
     </head>
     <body>
         <!--[if lt IE 8]>
@@ -23,7 +25,7 @@
         <div id="viewer"></div>
         <script type="text/javascript">
           var mirador;
-          $(function() {
+          $(document).ready(function() {
               mirador = Mirador({
                   "id": "viewer",
                   "layout": "1x1",
@@ -50,90 +52,57 @@
                   }
               });
 
-              mirador.viewer.eventEmitter.subscribe('manifestReceived', function(event, manifest) {
-                  $('.mirador-viewer').on('click', '.text-viewer a', function(event) {
-                      var link = $(this).attr('href'),
-                      canvas, 
-                      manifest;
-
-                      event.preventDefault();
-                      event.stopImmediatePropagation;
-                      $.get(link, function(anno) {
-                          canvas = anno.annotation.on.full;
-                          manifest = anno.annotation.on.within['@id'];
-                          mirador.viewer.addManifestFromUrl(manifest);
-                      });
-                      mirador.viewer.eventEmitter.subscribe('manifestReceived', function(event, manifest) {
-                          mirador.viewer.eventEmitter.publish('SPLIT_RIGHT', mirador.viewer.workspace.slots[0]);
-                          var _config = {
-                              manifest: manifest,
-                              slotAddress: mirador.viewer.workspace.slots[1].getAddress(),
-                              canvasID: canvas,
-                              viewType: 'ImageView',
-                              annotationLayer: true,
-                              annotationCreation: true,
-                              annotationState: 'on'
-                          };
-                          mirador.viewer.eventEmitter.publish('ADD_WINDOW', _config);
-
-
-                          // we need the right slow
-                              // load the manifest in the right slot
-
-                      });
-                      return false;
-                  });
-              });
+              crosslink.setup(mirador);
 
               {% if citation %}
-              //mirador.viewer.eventEmitter.subscribe('windowUpdated', function(event, window) {
-	      setTimeout(2000, function() {
-	          console.log(window);
-	
-                  var _this = window;
-		  var oaAnno = {  
-		      "@context":"http://iiif.io/api/presentation/2/context.json",
-		      "@type":"oa:Annotation",
-		      "motivation":[  
-			  "oa:commenting"
-		      ],
-		      "resource":[  
-			  {  
-			      "@type":"dctypes:Text",
-			      "format":"text/html",
-			      "chars":"<p><iframe src=\"//www.youtube.com/embed/ga4L1w66AbU\" width=\"425\" height=\"350\"></iframe></p>"
-			  }
-		      ],
-		      "on":[  
-			  {  
-			      "@type":"oa:SpecificResource",
-			      "full":"https://media.nga.gov/public/manifests/canvas/106382.json",
-			      "selector":{  
-				  "@type":"oa:Choice",
-				  "default":{  
-				      "@type":"oa:FragmentSelector",
-				      "value":"xywh=2818,3585,1154,982"
-				  },
-			      },
-			      "within":{  
-				  "@id":"https://media.nga.gov/public/manifests/76219/manifest.json",
-				  "@type":"sc:Manifest"
-			      }
-			  }
-		      ],
-		      "@id": "ia-citation"
-		  };
 
-		  _this.endpoint.create(oaAnno, function(data) {
-		      //the success callback expects the OA annotation be returned
-		      annoID = String(data['@id']); //just in case it returns a number
-		      _this.annotationsList.push(data);
-		      _this.eventEmitter.publish('ANNOTATIONS_LIST_UPDATED', {windowId: _this.id, annotationsList: _this.annotationsList});
-		  });
-	      });
+              setTimeout(2000, function() {
+                  console.log(window);
+
+                  var _this = window;
+                  var oaAnno = {
+                      "@context":"http://iiif.io/api/presentation/2/context.json",
+                      "@type":"oa:Annotation",
+                      "motivation":[
+                          "oa:commenting"
+                      ],
+                      "resource":[
+                          {
+                              "@type":"dctypes:Text",
+                              "format":"text/html",
+                              "chars":"<p><iframe src=\"//www.youtube.com/embed/ga4L1w66AbU\" width=\"425\" height=\"350\"></iframe></p>"
+                          }
+                      ],
+                      "on":[
+                          {
+                              "@type":"oa:SpecificResource",
+                              "full":"https://media.nga.gov/public/manifests/canvas/106382.json",
+                              "selector":{
+                                  "@type":"oa:Choice",
+                                  "default":{
+                                      "@type":"oa:FragmentSelector",
+                                      "value":"xywh=2818,3585,1154,982"
+                                  },
+                              },
+                              "within":{
+                                  "@id":"https://media.nga.gov/public/manifests/76219/manifest.json",
+                                  "@type":"sc:Manifest"
+                              }
+                          }
+                      ],
+                      "@id": "ia-citation"
+                  };
+
+                  _this.endpoint.create(oaAnno, function(data) {
+                      //the success callback expects the OA annotation be returned
+                      annoID = String(data['@id']); //just in case it returns a number
+                      _this.annotationsList.push(data);
+                      _this.eventEmitter.publish('ANNOTATIONS_LIST_UPDATED', {windowId: _this.id, annotationsList: _this.annotationsList});
+                  });
+              });
               {% endif %}
-          });            
-          
+
+          });
         </script>
     </body>
 </html>
