@@ -51,6 +51,7 @@ def manifest_page(identifier, label='', page='', width='', height=''):
             '@type': 'oa:Annotation',
             '@context': CONTEXT,
             '@id': '%s/annotation' % identifier,
+            'on': '%s/annotation' % identifier,
             'motivation': "sc:painting",
             'resource': {
                 '@id': '%s/full/full/0/default.jpg' % identifier,
@@ -61,7 +62,7 @@ def manifest_page(identifier, label='', page='', width='', height=''):
                 'service': {
                     '@context': CONTEXT,
                     '@id': identifier,
-                    'profile': 'http://iiif.io/api/image/2/profiles/level2.json',
+                    'profile': 'https://iiif.io/api/image/2/profiles/level2.json',
                 }
             }
         }]

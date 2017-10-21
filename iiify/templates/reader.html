@@ -6,17 +6,14 @@
         <title>IIIF Image Server 2.0 + Mirador</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" type="text/css" href="{{ request.url_root }}static/mirador/css/mirador-combined.css"/>
-        <link rel="stylesheet" type="text/css" href="{{ request.url_root }}static/styles/crosslink.css"/>
-        <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css"/>
-        <style type="text/css">
-          body { padding: 0; margin: 0; overflow: hidden; width: 100%; height: 100%;}
-          #viewer { background: #333; width: 100%; height: 100%; position: fixed; }
-        </style>
         <meta content="IIIF Image Server 2.0 with Mirador." name="description">
-        <script type="text/javascript" src="{{ request.url_root }}static/mirador/mirador.js"/></script>
-        <script type="text/javascript" src="{{ request.url_root }}static/scripts/annotations.js"/></script>
-        <script type="text/javascript" src="{{ request.url_root }}static/scripts/crosslink.js"/></script>
+
+	<link rel="stylesheet" type="text/css" href="{{ request.url_root }}static/mirador-2.1/mirador/css/mirador-combined.css">
+        <link rel="stylesheet" type="text/css" href="{{ request.url_root }}static/styles/crosslink.css"/>
+
+        <script type="text/javascript" src="{{ request.url_root }}static/mirador-2.1/mirador/mirador.min.js"/></script>
+        <script type="text/javascript" src="{{ request.url_root }}static/js/annotations.js"/></script>
+        <script type="text/javascript" src="{{ request.url_root }}static/js/crosslink.js"/></script>
     </head>
     <body>
         <!--[if lt IE 8]>

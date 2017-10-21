@@ -11,43 +11,49 @@ $(document).ready(function() {
 	    }
 	});
 	mirador.viewer.eventEmitter.subscribe('manifestReceived', function(event, manifest) {
-	    $('.mirador-viewer').on('click', '.text-viewer a', function(event) {
+	    $('.mirador-viewer').on('click', '.text-viewer a', function(event) {		
 		var link = $(this).attr('href'),
 		canvas,
 		manifest;
-
-		event.preventDefault();
-		event.stopImmediatePropagation;
-		$.get(link, function(anno) {
-		    canvas = anno.annotation.on.full;
-		    manifest = anno.annotation.on.within['@id'];
-		    mirador.viewer.addManifestFromUrl(manifest);
-		});
-		mirador.viewer.eventEmitter.subscribe('manifestReceived', function(event, manifest) {
-		    mirador.viewer.eventEmitter.publish('SPLIT_RIGHT', mirador.viewer.workspace.slots[0]);
-		    var _config = {
-			manifest: manifest,
-			slotAddress: mirador.viewer.workspace.slots[1].getAddress(),
-			canvasID: canvas,
-			viewType: 'ImageView',
-			annotationLayer: true,
-			annotationCreation: true,
-			annotationState: 'on'
-		    };
-		    mirador.viewer.eventEmitter.publish('ADD_WINDOW', _config);
-		    // load the manifest in the right slot
-		});
-
-		return false;
+		var url = 'https://pragma.archivelab.org';
+		if (link.indexOf(url) == 0) {
+		    console.log('just checking');
+		    event.preventDefault();
+		    event.stopImmediatePropagation;
+		    $.get(link, function(anno) {
+			canvas = anno.annotation.on.full;
+			manifest = anno.annotation.on.within['@id'];
+			mirador.viewer.addManifestFromUrl(manifest);
+		    });
+		    mirador.viewer.eventEmitter.subscribe('manifestReceived', function(event, manifest) {
+			mirador.viewer.eventEmitter.publish('SPLIT_RIGHT', mirador.viewer.workspace.slots[0]);
+			var _config = {
+			    manifest: manifest,
+			    slotAddress: mirador.viewer.workspace.slots[1].getAddress(),
+			    canvasID: canvas,
+			    viewType: 'ImageView',
+			    annotationLayer: true,
+			    annotationCreation: true,
+			    annotationState: 'on'
+			};
+			mirador.viewer.eventEmitter.publish('ADD_WINDOW', _config);
+			// load the manifest in the right slot
+		 
+		    });
+		    return false;
+		}
 	    });
 	});
     }
 
     $(document).on('click', '.xannotate-activate', function() {
-	console.log('?');
+	
 	$('.xannotate-widget').toggle();
     });
 
+    $(document).on('click', '.annotation-tooltip', function(e) {
+	alert($(e).attr('data-anno-id'));
+    });
 
     $('.xannotate-widget .xannotate-source').focus(function(e) {
 	$('.xannotate-target').removeClass('selected');
