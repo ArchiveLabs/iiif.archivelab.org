@@ -104,10 +104,10 @@ def manifest(identifier):
     if '$' in identifier:
         identifier, page = identifier.split('$')
         page = int(page)
-    #try:
-    return ldjsonify(create_manifest(identifier, domain=domain, page=page))
-    #except:
-    #    abort(404)
+    try:
+        return ldjsonify(create_manifest(identifier, domain=domain, page=page))
+    except:
+        abort(404)
 
 
 @app.route('/iiif/<identifier>/info.json')
@@ -139,29 +139,29 @@ def image_processor(identifier, **kwargs):
             path, _ = ia_resolver(_id)
         except:
             abort(404)
-        #try:
-        params = web.Parse.params(_id, **kwargs)
-        tile = iiif.IIIF.render(path, **params)        
-        tile_cache_path = os.path.join(cache_root, web.urihash(request.path.replace(identifier, _id)))
-        tile.seek(0)
-        tile.save(tile_cache_path, tile.mime)
-        sprite_tiles.append(tile)
-        #except Exception as e:
-        #    abort(404)
+        try:
+            params = web.Parse.params(_id, **kwargs)
+            tile = iiif.IIIF.render(path, **params)
+            tile_cache_path = os.path.join(cache_root, web.urihash(request.path.replace(identifier, _id)))
+            tile.seek(0)
+            tile.save(tile_cache_path, tile.mime)
+            sprite_tiles.append(tile)
+        except Exception as e:
+            abort(404)
 
     if len(sprite_tiles) == 1:
         tile = sprite_tiles[0]
     else:
-        tile = iiif.IIIF.format(sprite_concat(sprite_tiles), fmt=kwargs.get('fmt'))        
+        tile = iiif.IIIF.format(sprite_concat(sprite_tiles), fmt=kwargs.get('fmt'))
         tile.seek(0)
         print(cache_path)
         tile.save(cache_path, tile.mime)
-            
-    #try:
-    tile.seek(0)
-    return send_file(tile, mimetype=tile.mime)
-    #except Exception as e:
-    #    abort(400)
+
+    try:
+        tile.seek(0)
+        return send_file(tile, mimetype=tile.mime)
+    except Exception as e:
+        abort(400)
 
 
 @app.after_request
@@ -175,7 +175,6 @@ def ldjsonify(data):
     j.headers.set('Access-Control-Allow-Origin', '*')
     j.mimetype = "application/ld+json"
     return j
-
 
 if __name__ == '__main__':
     app.run(**options)
