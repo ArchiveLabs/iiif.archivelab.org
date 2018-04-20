@@ -20,6 +20,22 @@ cors = CORS(app) if cors else None
 #limiter = Limiter(app, key_func=get_remote_address,
 #                  default_limits=['10000 per day', '1000 per hour'])
 
+def sprite_concat(imgs):
+    from PIL import Image
+    images = list(map(Image.open, imgs))
+    widths, heights = zip(*[i.size for i in images])
+
+    total_width = sum(widths)
+    max_height = max(heights)
+
+    new_im = Image.new('RGB', (total_width, max_height))
+
+    x_offset = 0
+    for im in images:
+        new_im.paste(im, (x_offset,0))
+        x_offset += im.size[0]
+    return new_im
+
 @app.route('/iiif/')
 def index():
     """Lists all available book and image items on Archive.org"""
@@ -88,10 +104,10 @@ def manifest(identifier):
     if '$' in identifier:
         identifier, page = identifier.split('$')
         page = int(page)
-    #try:
-    return ldjsonify(create_manifest(identifier, domain=domain, page=page))
-    #except:
-    #    abort(404)
+    try:
+        return ldjsonify(create_manifest(identifier, domain=domain, page=page))
+    except:
+        abort(404)
 
 
 @app.route('/iiif/<identifier>/info.json')
@@ -116,17 +132,36 @@ def image_processor(identifier, **kwargs):
         mime = iiif.type_map[kwargs.get('fmt')]['mime']
         return send_file(cache_path, mimetype=mime)
 
-    try:
-        path, _ = ia_resolver(identifier)
-    except ValueError:
-        abort(404)
-    try:
-        params = web.Parse.params(identifier, **kwargs)
-        tile = iiif.IIIF.render(path, **params)
+    identifiers = identifier.split(',') if ',' in identifier else [identifier]
+    sprite_tiles = []
+    for _id in identifiers:
+        try:
+            path, _ = ia_resolver(_id)
+        except:
+            abort(404)
+        try:
+            params = web.Parse.params(_id, **kwargs)
+            tile = iiif.IIIF.render(path, **params)
+            tile_cache_path = os.path.join(cache_root, web.urihash(request.path.replace(identifier, _id)))
+            tile.seek(0)
+            tile.save(tile_cache_path, tile.mime)
+            sprite_tiles.append(tile)
+        except Exception as e:
+            abort(404)
+
+    if len(sprite_tiles) == 1:
+        tile = sprite_tiles[0]
+    else:
+        tile = iiif.IIIF.format(sprite_concat(sprite_tiles), fmt=kwargs.get('fmt'))
+        tile.seek(0)
+        print(cache_path)
         tile.save(cache_path, tile.mime)
+
+    try:
+        tile.seek(0)
         return send_file(tile, mimetype=tile.mime)
     except Exception as e:
-        abort(400)  # , "Invalid tiling parameter: %s" % e)
+        abort(400)
 
 
 @app.after_request
@@ -140,7 +175,6 @@ def ldjsonify(data):
     j.headers.set('Access-Control-Allow-Origin', '*')
     j.mimetype = "application/ld+json"
     return j
-
 
 if __name__ == '__main__':
     app.run(**options)
