@@ -4,6 +4,6 @@ RUN apt-get upgrade -y
 RUN apt-get install -y python-pip python-dev build-essential
 COPY . /iiify
 WORKDIR /iiify
-RUN pip install -r reqirements
+RUN pip install -r requirements.txt
 ENTRYPOINT ["python"]
 CMD ["app.py"]
