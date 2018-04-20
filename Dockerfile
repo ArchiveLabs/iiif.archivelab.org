@@ -6,4 +6,5 @@ COPY . /iiify
 WORKDIR /iiify
 RUN pip install -r requirements.txt
 ENTRYPOINT ["python"]
-CMD ["app.py"]
+EXPOSE 8080
+CMD ["/iiify/iiify/app.py"]
