@@ -13,3 +13,5 @@ iiif2==0.0.31
 flask-cors
 requests==2.18.4
 configparser==3.5.0
+flask_limiter
+internetarchive
