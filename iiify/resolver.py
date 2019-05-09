@@ -107,7 +107,15 @@ def create_manifest(identifier, domain=None, page=None):
     if page and mediatype is None:
         mediatype = 'image'
 
-    if mediatype.lower() == 'image':
+    if "$" not in identifier:
+        filepath = None
+    else:
+        identifier, filepath = identifier.split("$", 1)
+        filepath = filepath.replace("$", os.sep)
+
+    if mediatype.lower() == 'image' or (
+        filepath and mediatype.lower() != 'texts'
+    ):
         path, mediatype = ia_resolver(identifier)
         info = web.info(domain, path)
         manifest['sequences'][0]['canvases'].append(
@@ -150,7 +158,7 @@ def create_manifest(identifier, domain=None, page=None):
             )
             return manifest
 
-        for page in range(1, len(data.get('leafNums', []))):
+        for page in range(0, len(data.get('leafNums', []))):
             manifest['sequences'][0]['canvases'].append(
                 manifest_page(
                     identifier = "%s%s$%s" % (domain, identifier, page),
@@ -211,7 +219,10 @@ def ia_resolver(identifier):
 
     if not os.path.exists(path):
         r = None
-        if mediatype.lower() == 'image':
+
+        if mediatype.lower() == 'image' or (
+            filepath and mediatype.lower() != 'texts'
+        ):
             if filepath:
                 itempath = os.path.join(identifier, filepath)
             else:
@@ -224,7 +235,6 @@ def ia_resolver(identifier):
 
         elif mediatype.lower() == 'texts' and leaf:
             url = '%s/download/%s/page/leaf%s' % (ARCHIVE, identifier, leaf)
-            print(url)
             r = requests.get(url)
         if r:
             with open(path, 'wb') as rc:
