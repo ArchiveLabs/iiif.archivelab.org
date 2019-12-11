@@ -5,7 +5,8 @@ import requests
 from iiif2 import iiif, web
 from configs import options, cors, approot, cache_root, media_root, apiurl
 
-CONTEXT = 'http://iiif.io/api/image/2/context.json'
+IMG_CTX = 'http://iiif.io/api/image/2/context.json'
+PRZ_CTX = 'http://iiif.io/api/presentation/2/context.json'
 ARCHIVE = 'http://archive.org'
 METADATA_FIELDS = ("title", "volume", "publisher", "subject", "date", "contributor", "creator")
 bookdata = 'http://%s/BookReader/BookReaderJSON.php'
@@ -26,7 +27,7 @@ def getids(q, limit=1000, cursor=''):
 
 def collection(domain, identifiers, label='Custom Archive.org IIIF Collection'):
     cs = {
-        '@context': CONTEXT,
+        '@context': PRZ_CTX,
         '@id': "%scollection.json" % domain,
         '@type': 'sc:Collection',
         'label': label,
@@ -36,20 +37,24 @@ def collection(domain, identifiers, label='Custom Archive.org IIIF Collection'):
         cs['collections'].append({
             '@id': '%s%s/manifest.json' % (domain, i),
             '@type': 'sc:Manifest',
-            'label': ''
+            'label': label,
+            'description': label
         })
     return cs
 
-def manifest_page(identifier, label='', page='', width='', height=''):
+def manifest_page(identifier, label='', page='', width='', height='', metadata=None):
+    metadata = metadata or {}
     return {
         '@id': '%s/canvas' % identifier,
         '@type': 'sc:Canvas',
-        'label': label,
+        '@context': PRZ_CTX,
+        'description': metadata.get('description', ''),
+        'label': label or 'p. ' + str(page),
         'width': width,
         'height': height,
         'images': [{
             '@type': 'oa:Annotation',
-            '@context': CONTEXT,
+            '@context': IMG_CTX,
             '@id': '%s/annotation' % identifier,
             'on': '%s/annotation' % identifier,
             'motivation': "sc:painting",
@@ -60,7 +65,7 @@ def manifest_page(identifier, label='', page='', width='', height=''):
                 'height': height,
                 'format': 'image/jpeg',
                 'service': {
-                    '@context': CONTEXT,
+                    '@context': IMG_CTX,
                     '@id': identifier,
                     'profile': 'https://iiif.io/api/image/2/profiles/level2.json',
                 }
@@ -70,16 +75,21 @@ def manifest_page(identifier, label='', page='', width='', height=''):
 
 
 def create_manifest(identifier, domain=None, page=None):
+    path = os.path.join(media_root, identifier)
+    resp = requests.get('%s/metadata/%s' % (ARCHIVE, identifier)).json()
+    metadata = resp.get("metadata", {})
+
     manifest = {
-        '@context': CONTEXT,
+        '@context': PRZ_CTX,
         '@id': '%s%s/manifest.json' % (domain, identifier),
         '@type': 'sc:Manifest',
+        'description': metadata.get('description', ''),
         'logo': 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcReMN4l9cgu_qb1OwflFeyfHcjp8aUfVNSJ9ynk2IfuHwW1I4mDSw',
             'sequences': [
                 {
                     '@id': '%s%s/canvas/default' % (domain, identifier),
                     '@type': 'sc:Sequence',
-                    '@context': CONTEXT,
+                    '@context': IMG_CTX,
                     'label': 'default',
                     'canvases': []
                 }
@@ -88,9 +98,6 @@ def create_manifest(identifier, domain=None, page=None):
         'attribution': "The Internet Archive",
         'seeAlso': '%s/metadata/%s' % (ARCHIVE, identifier)
     }
-    path = os.path.join(media_root, identifier)
-    resp = requests.get('%s/metadata/%s' % (ARCHIVE, identifier)).json()
-    metadata = resp.get("metadata", {})
 
     mediatype = metadata.get("mediatype")
 
@@ -123,7 +130,8 @@ def create_manifest(identifier, domain=None, page=None):
                 identifier="%s%s" % (domain, identifier),
                 label=metadata['title'],
                 width=info['width'],
-                height=info['height']
+                height=info['height'],
+                metadata=metadata
             )
         )
 
