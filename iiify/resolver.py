@@ -235,7 +235,8 @@ def ia_resolver(identifier):
                 itempath = os.path.join(identifier, filepath)
             else:
                 f = next(f for f in files if valid_filetype(f['name']) \
-                         and f['source'].lower() == 'original')
+                         and f['source'].lower() == 'original' \
+                         and 'thumb' not in f['name'] )
                 itempath = os.path.join(identifier, f['name'])
             url = '%s/download/%s' % (ARCHIVE, itempath)
             print(url)
