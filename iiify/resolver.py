@@ -207,6 +207,8 @@ def ia_resolver(identifier):
         if os.sep not in filepath:
             leaf = filepath
 
+    identifier, document = identifier.split(":", 1) if ":" in identifier else (identifier, None)
+
     metadata = requests.get('%s/metadata/%s' % (ARCHIVE, identifier)).json()
     if 'dir' not in metadata:
         raise ValueError("No such valid Archive.org item identifier: %s" \
@@ -243,7 +245,8 @@ def ia_resolver(identifier):
             r = requests.get(url, stream=True, allow_redirects=True)
 
         elif mediatype.lower() == 'texts' and leaf:
-            url = '%s/download/%s/page/leaf%s' % (ARCHIVE, identifier, leaf)
+            identifierpath = "/".join([identifier, document]) if document else identifier
+            url = '%s/download/%s/page/leaf%s' % (ARCHIVE, identifierpath, leaf)
             r = requests.get(url)
         if r:
             with open(path, 'wb') as rc:
