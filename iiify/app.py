@@ -128,7 +128,7 @@ def info(identifier):
 def image_processor(identifier, **kwargs):
     cache_path = os.path.join(cache_root, web.urihash(request.path))
 
-    if os.path.exists(cache_path):
+    if os.path.exists(cache_path) and not request.args.get("recache"):
         mime = iiif.type_map[kwargs.get('fmt')]['mime']
         return send_file(cache_path, mimetype=mime)
 
@@ -154,7 +154,6 @@ def image_processor(identifier, **kwargs):
     else:
         tile = iiif.IIIF.format(sprite_concat(sprite_tiles), fmt=kwargs.get('fmt'))
         tile.seek(0)
-        print(cache_path)
         tile.save(cache_path, tile.mime)
 
     try:
