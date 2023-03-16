@@ -15,7 +15,6 @@ jsonpatch==1.32
 jsonpointer==2.3
 MarkupSafe==2.1.2
 Pillow==9.4.0
-pkg_resources==0.0.0
 requests==2.28.2
 schema==0.7.5
 six==1.16.0
