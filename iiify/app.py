@@ -2,11 +2,11 @@
 
 import os
 import time
-import requests
+# import requests
 from flask import Flask, send_file, jsonify, abort, request, render_template, redirect
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from flask.ext.cors import CORS
+# from flask_limiter import Limiter
+# from flask_limiter.util import get_remote_address
+from flask_cors import CORS
 from iiif2 import iiif, web
 from resolver import ia_resolver, create_manifest, getids, collection, \
     purify_domain
