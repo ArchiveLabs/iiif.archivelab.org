@@ -3,7 +3,7 @@
 import os
 import requests
 from iiif2 import iiif, web
-from configs import options, cors, approot, cache_root, media_root, apiurl
+from .configs import options, cors, approot, cache_root, media_root, apiurl
 
 IMG_CTX = 'http://iiif.io/api/image/2/context.json'
 PRZ_CTX = 'http://iiif.io/api/presentation/2/context.json'

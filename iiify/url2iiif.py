@@ -4,7 +4,7 @@ import requests
 import tempfile
 import mimetypes
 import internetarchive as ia
-from configs import s3key, s3secret, iiif_domain
+from .configs import s3key, s3secret, iiif_domain
 
 BUF_SIZE = 65536  # 64kb
 SIZE_LIMIT_MB = 200

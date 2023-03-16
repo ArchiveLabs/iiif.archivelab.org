@@ -5,10 +5,10 @@ import time
 from flask import Flask, send_file, jsonify, abort, request, render_template, redirect
 from flask_cors import CORS
 from iiif2 import iiif, web
-from resolver import ia_resolver, create_manifest, getids, collection, \
+from .resolver import ia_resolver, create_manifest, getids, collection, \
     purify_domain
-from url2iiif import url2ia
-from configs import options, cors, approot, cache_root, media_root, \
+from .url2iiif import url2ia
+from .configs import options, cors, approot, cache_root, media_root, \
     cache_expr, version
 
 
