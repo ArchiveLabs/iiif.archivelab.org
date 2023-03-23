@@ -2,23 +2,18 @@
 
 import os
 import time
-import requests
 from flask import Flask, send_file, jsonify, abort, request, render_template, redirect
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from flask.ext.cors import CORS
+from flask_cors import CORS
 from iiif2 import iiif, web
-from resolver import ia_resolver, create_manifest, getids, collection, \
+from .resolver import ia_resolver, create_manifest, getids, collection, \
     purify_domain
-from url2iiif import url2ia
-from configs import options, cors, approot, cache_root, media_root, \
+from .url2iiif import url2ia
+from .configs import options, cors, approot, cache_root, media_root, \
     cache_expr, version
 
 
 app = Flask(__name__)
 cors = CORS(app) if cors else None
-#limiter = Limiter(app, key_func=get_remote_address,
-#                  default_limits=['10000 per day', '1000 per hour'])
 
 def sprite_concat(imgs):
     from PIL import Image
