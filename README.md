@@ -16,10 +16,22 @@ A simple Python Flask-based implementation of the IIIF Image API 1.0 standard
 git clone https://github.com/ArchiveLabs/iiif.archivelab.org.git
 cd iiif.archivelab.org
 pip install .
-cd iiify
 python app.py
 ```
-Navigate to http://127.0.0.1:8080
+Navigate to http://127.0.0.1:8080/iiif
+
+You can also run the app using Docker, either with the Flask development server:
+```
+docker build -t iiify .
+docker run -d --rm --name iiify -p 8080:8080 iiify
+```
+or with an image using nginx and uwsgi:
+```
+docker build -t iiify-uwsgi -f Dockerfile-uwsgi .
+docker run -d --rm --name iiify -p 8080:8080 iiify-uwsgi
+```
+
+Navigate to http://127.0.0.1:8080/iiif
 
 ## Test it!
 
