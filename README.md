@@ -35,6 +35,11 @@ Navigate to http://127.0.0.1:8080/iiif
 
 ## Test it!
 
+Unit tests are in the `tests` folder and can be run with:
+```
+python -m unittest discover -s tests
+```
+
 Retrieve large.jpg as 800px wide JPEG
 * http://127.0.0.1:8080/iiif/large.jpg/full/800,/0/default.jpg 
 
