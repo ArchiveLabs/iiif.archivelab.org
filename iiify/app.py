@@ -9,7 +9,7 @@ from .resolver import ia_resolver, create_manifest, getids, collection, \
     purify_domain
 from .url2iiif import url2ia
 from .configs import options, cors, approot, cache_root, media_root, \
-    cache_expr, version
+    cache_expr, version, image_server
 
 
 app = Flask(__name__)
@@ -107,56 +107,14 @@ def manifest(identifier):
 
 @app.route('/iiif/<identifier>/info.json')
 def info(identifier):
-    try:
-        path, mediatype = ia_resolver(identifier)
-    except ValueError:
-        abort(404)
-    try:
-        domain = '%s%s' % (purify_domain(request.url_root), identifier)
-        info = web.info(domain, path)
-        return ldjsonify(info)
-    except:
-        abort(400)  # , "Invalid item, may actually be collection")
+    cantaloupe_url = f"{image_server}/2/{identifier}/info.json"
+    return redirect(cantaloupe_url, code=302)
 
 
 @app.route('/iiif/<identifier>/<region>/<size>/<rotation>/<quality>.<fmt>')
-def image_processor(identifier, **kwargs):
-    cache_path = os.path.join(cache_root, web.urihash(request.path))
-
-    if os.path.exists(cache_path):
-        mime = iiif.type_map[kwargs.get('fmt')]['mime']
-        return send_file(cache_path, mimetype=mime)
-
-    identifiers = identifier.split(',') if ',' in identifier else [identifier]
-    sprite_tiles = []
-    for _id in identifiers:
-        try:
-            path, _ = ia_resolver(_id)
-        except:
-            abort(404)
-        try:
-            params = web.Parse.params(_id, **kwargs)
-            tile = iiif.IIIF.render(path, **params)
-            tile_cache_path = os.path.join(cache_root, web.urihash(request.path.replace(identifier, _id)))
-            tile.seek(0)
-            tile.save(tile_cache_path, tile.mime)
-            sprite_tiles.append(tile)
-        except Exception as e:
-            abort(404)
-
-    if len(sprite_tiles) == 1:
-        tile = sprite_tiles[0]
-    else:
-        tile = iiif.IIIF.format(sprite_concat(sprite_tiles), fmt=kwargs.get('fmt'))
-        tile.seek(0)
-        print(cache_path)
-        tile.save(cache_path, tile.mime)
-
-    try:
-        tile.seek(0)
-        return send_file(tile, mimetype=tile.mime)
-    except Exception as e:
-        abort(400)
+def image_processor(identifier, region, size, rotation, quality, fmt):
+    cantaloupe_url = f"{image_server}/2/{identifier}/{region}/{size}/{rotation}/{quality}.{fmt}"
+    return redirect(cantaloupe_url, code=302)
 
 
 @app.after_request
