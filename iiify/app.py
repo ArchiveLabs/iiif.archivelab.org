@@ -119,6 +119,31 @@ def image_processor(identifier, region, size, rotation, quality, fmt):
     return redirect(cantaloupe_url, code=302)
 
 
+@app.route('/iiif/image/<identifier>')
+@app.route('/iiif/image/<identifier>/info.json')
+@app.route('/iiif/image/3/<identifier>')
+@app.route('/iiif/image/3/<identifier>/info.json')
+def cantaloupe_v3_info_redirect(identifier):
+    cantaloupe_url = f"{image_server}/3/{identifier}/info.json"
+    return redirect(cantaloupe_url, code=302)
+
+@app.route('/iiif/image/2/<identifier>')
+@app.route('/iiif/image/2/<identifier>/info.json')
+def cantaloupe_v2_info_redirect(identifier):
+    cantaloupe_url = f"{image_server}/2/{identifier}/info.json"
+    return redirect(cantaloupe_url, code=302)
+
+@app.route('/iiif/image/<identifier>/<region>/<size>/<rotation>/<quality>.<fmt>')
+@app.route('/iiif/image/3/<identifier>/<region>/<size>/<rotation>/<quality>.<fmt>')
+def cantaloupe_v3_image_redirect(identifier, region, size, rotation, quality, fmt):
+    cantaloupe_url = f"{image_server}/3/{identifier}/{region}/{size}/{rotation}/{quality}.{fmt}"
+    return redirect(cantaloupe_url, code=302)
+
+@app.route('/iiif/image/2/<identifier>/<region>/<size>/<rotation>/<quality>.<fmt>')
+def cantaloupe_v2_image_redirect(identifier, region, size, rotation, quality, fmt):
+    cantaloupe_url = f"{image_server}/2/{identifier}/{region}/{size}/{rotation}/{quality}.{fmt}"
+    return redirect(cantaloupe_url, code=302)
+
 @app.after_request
 def add_header(response):
     response.cache_control.max_age = cache_expr  # minutes
