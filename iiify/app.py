@@ -6,7 +6,7 @@ from flask import Flask, send_file, jsonify, abort, request, render_template, re
 from flask_cors import CORS
 from iiif2 import iiif, web
 from .resolver import ia_resolver, create_manifest, getids, collection, \
-    purify_domain
+    purify_domain, cantaloupe_resolver
 from .url2iiif import url2ia
 from .configs import options, cors, approot, cache_root, media_root, \
     cache_expr, version, image_server
@@ -107,13 +107,15 @@ def manifest(identifier):
 
 @app.route('/iiif/<identifier>/info.json')
 def info(identifier):
-    cantaloupe_url = f"{image_server}/2/{identifier}/info.json"
+    cantaloupe_id = cantaloupe_resolver(identifier)
+    cantaloupe_url = f"{image_server}/2/{cantaloupe_id}/info.json"
     return redirect(cantaloupe_url, code=302)
 
 
 @app.route('/iiif/<identifier>/<region>/<size>/<rotation>/<quality>.<fmt>')
 def image_processor(identifier, region, size, rotation, quality, fmt):
-    cantaloupe_url = f"{image_server}/2/{identifier}/{region}/{size}/{rotation}/{quality}.{fmt}"
+    cantaloupe_id = cantaloupe_resolver(identifier)
+    cantaloupe_url = f"{image_server}/2/{cantaloupe_id}/{region}/{size}/{rotation}/{quality}.{fmt}"
     return redirect(cantaloupe_url, code=302)
 
 
