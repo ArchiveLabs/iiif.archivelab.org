@@ -253,3 +253,15 @@ def ia_resolver(identifier):
                 rc.writelines(r.iter_content(chunk_size=1024))
 
     return path, mediatype
+
+def cantaloupe_resolver(identifier):
+    """Resolves an existing Image Service identifier to what it should be with the new Cantaloupe setup"""
+
+    leaf = None
+    if "$" not in identifier:
+        filepath = None
+    else:
+        identifier, filepath = identifier.split("$", 1)
+        filepath = filepath.replace("$", os.sep)
+        if os.sep not in filepath:
+            leaf = filepath
