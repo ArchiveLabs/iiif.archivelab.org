@@ -258,10 +258,33 @@ def cantaloupe_resolver(identifier):
     """Resolves an existing Image Service identifier to what it should be with the new Cantaloupe setup"""
 
     leaf = None
-    if "$" not in identifier:
-        filepath = None
-    else:
-        identifier, filepath = identifier.split("$", 1)
-        filepath = filepath.replace("$", os.sep)
-        if os.sep not in filepath:
-            leaf = filepath
+    if "$" in identifier:
+        identifier, leaf = identifier.split("$", 1)
+
+    metadata = requests.get('%s/metadata/%s' % (ARCHIVE, identifier)).json()
+    if 'dir' not in metadata:
+        raise ValueError("No such valid Archive.org item identifier: %s" \
+                        % identifier)
+
+    mediatype = metadata['metadata']['mediatype'].lower()
+    files = metadata['files']
+
+    if mediatype == "image":
+        # single image file - find the filename
+        filename = next(f for f in files if valid_filetype(f['name']) \
+                 and f['source'].lower() == 'original' \
+                 and 'thumb' not in f['name'])['name']
+        if filename:
+            return f"{identifier}%2f{filename}"
+    elif mediatype == "texts" and leaf:
+        # book - find the jp2 zip and assume the filename?
+        # TODO: use one of the BookReader (or other) APIs to be 100% certain here
+        filename = next(f for f in files if f['source'].lower() == 'derivative' \
+                        and f['name'].endswith('_jp2.zip'))['name']
+        if filename:
+            dirpath = filename[:-4]
+            filepath = f"{identifier}_{leaf.zfill(4)}.jp2"
+            return f"{identifier}%2f{filename}%2f{dirpath}%2f{filepath}"
+
+
+
