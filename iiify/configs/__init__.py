@@ -66,4 +66,4 @@ s3key = config.getdef('url2iiif', 's3key', '')
 s3secret = config.getdef('url2iiif', 's3secret', '')
 
 # cantaloupe server
-image_server = config.getdef('cantaloupe', 'url', 'http://ol-dev1.us.archive.org:8182/iiif')
+image_server = config.getdef('cantaloupe', 'url', 'https://services-ia-iiif-cantaloupe-experiment.dev.archive.org/iiif')
