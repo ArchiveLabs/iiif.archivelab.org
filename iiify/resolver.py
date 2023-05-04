@@ -4,10 +4,14 @@ import os
 import requests
 from iiif2 import iiif, web
 from .configs import options, cors, approot, cache_root, media_root, apiurl
+from iiif_prezi3 import Manifest, config, Annotation, AnnotationPage, Canvas, Manifest, ResourceItem, ServiceItem
+from urllib.parse import urlparse, parse_qs
+import json
 
 IMG_CTX = 'http://iiif.io/api/image/2/context.json'
 PRZ_CTX = 'http://iiif.io/api/presentation/2/context.json'
 ARCHIVE = 'http://archive.org'
+IMG_SRV = 'https://services-ia-iiif-cantaloupe-experiment.dev.archive.org/iiif'
 METADATA_FIELDS = ("title", "volume", "publisher", "subject", "date", "contributor", "creator")
 bookdata = 'http://%s/BookReader/BookReaderJSON.php'
 bookreader = "http://%s/BookReader/BookReaderImages.php"
@@ -177,6 +181,49 @@ def create_manifest(identifier, domain=None, page=None):
             )
     return manifest
 
+def create_manifest3(identifier, domain=None, page=None):
+    metadata = requests.get('%s/metadata/%s' % (ARCHIVE, identifier)).json()
+    bookReaderURL = f"https://{metadata.get('server')}/BookReader/BookReaderJSIA.php?id={identifier}&itemPath={metadata.get('dir')}&server={metadata.get('server')}&format=jsonp&subPrefix={identifier}"
+    bookreader = requests.get(bookReaderURL).json()
+    uri = f"{domain}{identifier}"
+
+    config.configs['helpers.auto_fields.AutoLang'].auto_lang = "none"
+
+    manifest = Manifest(id=f"{uri}/manifest.json", label=metadata["metadata"]["title"])
+
+    pageCount = 0
+    # /29/items/goody/goody_jp2.zip to goody/good_jp2.zip
+    zipFile = '/'.join(bookreader['data']['brOptions']['zip'].split('/')[-2:])
+
+    for pageSpread in bookreader['data']['brOptions']['data']:
+        for page in pageSpread:
+            fileUrl = urlparse(page['uri'])
+            fileName = parse_qs(fileUrl.query).get('file')[0]
+            imgId = f"{zipFile}/{fileName}".replace('/','%2f')
+            imgURL = f"{IMG_SRV}/3/{imgId}"
+
+            canvas = Canvas(id=f"https://iiif.archivelab.org/iiif/{identifier}${pageCount}/canvas", label=f"{page['leafNum']}")
+
+            body = ResourceItem(id=f"{imgURL}/full/max/0/default.jpg", type="Image")
+            body.format = "image/jpeg"
+            body.service = [ServiceItem(id=imgURL, profile="level2", type="ImageService3")]
+
+            annotation = Annotation(id=f"{uri}/annotation/{pageCount}", motivation='painting', body=body, target=canvas.id)
+
+            annotationPage = AnnotationPage(id=f"{uri}/annotationPage/{pageCount}")
+            annotationPage.add_item(annotation)
+
+            canvas.add_item(annotationPage)
+            canvas.set_hwd(page['height'], page['width'])
+
+            manifest.add_item(canvas)
+            # Create canvas from IIIF image service. Note this is very slow:
+            #canvas = manifest.make_canvas_from_iiif(url=imgURL,
+            #                            id=f"https://iiif.archivelab.org/iiif/{identifier}${pageCount}/canvas",
+            #                            label=f"{page['leafNum']}")
+            pageCount += 1
+
+    return json.loads(manifest.jsonld())
 
 def coerce_list(value):
     if isinstance(value, list):
@@ -253,3 +300,38 @@ def ia_resolver(identifier):
                 rc.writelines(r.iter_content(chunk_size=1024))
 
     return path, mediatype
+
+def cantaloupe_resolver(identifier):
+    """Resolves an existing Image Service identifier to what it should be with the new Cantaloupe setup"""
+
+    leaf = None
+    if "$" in identifier:
+        identifier, leaf = identifier.split("$", 1)
+
+    metadata = requests.get('%s/metadata/%s' % (ARCHIVE, identifier)).json()
+    if 'dir' not in metadata:
+        raise ValueError("No such valid Archive.org item identifier: %s" \
+                        % identifier)
+
+    mediatype = metadata['metadata']['mediatype'].lower()
+    files = metadata['files']
+
+    if mediatype == "image":
+        # single image file - find the filename
+        filename = next(f for f in files if valid_filetype(f['name']) \
+                 and f['source'].lower() == 'original' \
+                 and 'thumb' not in f['name'])['name']
+        if filename:
+            return f"{identifier}%2f{filename}"
+    elif mediatype == "texts" and leaf:
+        # book - find the jp2 zip and assume the filename?
+        # TODO: use one of the BookReader (or other) APIs to be 100% certain here
+        filename = next(f for f in files if f['source'].lower() == 'derivative' \
+                        and f['name'].endswith('_jp2.zip'))['name']
+        if filename:
+            dirpath = filename[:-4]
+            filepath = f"{identifier}_{leaf.zfill(4)}.jp2"
+            return f"{identifier}%2f{filename}%2f{dirpath}%2f{filepath}"
+
+
+
