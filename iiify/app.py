@@ -5,7 +5,7 @@ import time
 from flask import Flask, send_file, jsonify, abort, request, render_template, redirect
 from flask_cors import CORS
 from iiif2 import iiif, web
-from .resolver import ia_resolver, create_manifest, getids, collection, \
+from .resolver import ia_resolver, create_manifest, create_manifest3, getids, collection, \
     purify_domain, cantaloupe_resolver
 from .url2iiif import url2ia
 from .configs import options, cors, approot, cache_root, media_root, \
@@ -91,6 +91,16 @@ def view(identifier):
                                info=web.info(uri, path))
     return render_template('reader.html', domain=request.base_url, page=page, citation=citation)
 
+@app.route('/iiif/3/<identifier>/manifest.json')
+def manifest3(identifier):
+    domain = purify_domain(request.args.get('domain', request.url_root))
+    page = None
+    
+    try:
+        return ldjsonify(create_manifest3(identifier, domain=domain, page=page))
+    except Exception as excpt:
+        print (excpt)
+        #abort(404)
 
 @app.route('/iiif/<identifier>/manifest.json')
 def manifest(identifier):
