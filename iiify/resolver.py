@@ -204,6 +204,21 @@ def create_manifest3(identifier, domain=None, page=None):
 
     manifest = Manifest(id=f"{uri}/manifest.json", label=metadata["metadata"]["title"])
 
+    manifest.homepage = [{"id": f"https://archive.org/details/{identifier}",
+                         "type": "Text",
+                         "label": {"en": ["Item Page on Internet Archive"]},
+                         "format": "text/html"}]
+
+    manifest.provider = [{"id": "https://archive.org",
+                         "type": "Agent",
+                         "label": {"en": ["The Internet Archive"]}}]
+
+    if "licenseurl" in metadata["metadata"]:
+        manifest.rights = metadata["metadata"]["licenseurl"].replace("https", "http", 1)
+
+    if "description" in metadata["metadata"]:
+        manifest.summary = {"none": [metadata["metadata"]["description"]]}
+
     if mediatype == 'texts':
         # Get bookreader metadata (mostly for filenames and height / width of image)
         bookReaderURL = f"https://{metadata.get('server')}/BookReader/BookReaderJSIA.php?id={identifier}&itemPath={metadata.get('dir')}&server={metadata.get('server')}&format=jsonp&subPrefix={identifier}"
