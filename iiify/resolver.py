@@ -313,6 +313,7 @@ def create_manifest3(identifier, domain=None, page=None):
                             duration=float(file['length']))
                         body.items.append(r)
             else:
+                # todo: deal with instances where there are no derivatives for whatever reason
                 pass
 
             anno.body = body
