@@ -219,6 +219,26 @@ def create_manifest3(identifier, domain=None, page=None):
     if "description" in metadata["metadata"]:
         manifest.summary = {"none": [metadata["metadata"]["description"]]}
 
+    excluded_fields = [
+    'avg_rating', 'backup_location', 'btih', 'description', 'downloads',
+    'imagecount', 'indexflag', 'item_size', 'licenseurl'
+    'noindex', 'num_reviews', 'oai_updatedate', 'publicdate', 'publisher',  'reviewdate',
+    'scanningcentre', 'stripped_tags', 'uploader'
+    ]
+
+    manifest_metadata = []
+
+    for field in metadata["metadata"]:
+        if field not in excluded_fields:
+            if type(metadata["metadata"][field]) != list:
+                metadata_value = [str(metadata["metadata"][field])]
+            else:
+                metadata_value = metadata["metadata"][field]
+            manifest_metadata.append(
+                {"label": {"none": [field]}, "value": {"none": metadata_value}})
+
+    manifest.metadata = manifest_metadata
+
     if mediatype == 'texts':
         # Get bookreader metadata (mostly for filenames and height / width of image)
         bookReaderURL = f"https://{metadata.get('server')}/BookReader/BookReaderJSIA.php?id={identifier}&itemPath={metadata.get('dir')}&server={metadata.get('server')}&format=jsonp&subPrefix={identifier}"
