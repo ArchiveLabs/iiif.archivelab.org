@@ -230,8 +230,12 @@ def create_manifest3(identifier, domain=None, page=None):
 
     for field in metadata["metadata"]:
         if field not in excluded_fields:
+            if type(metadata["metadata"][field]) != list:
+                metadata_value = [str(metadata["metadata"][field])]
+            else:
+                metadata_value = metadata["metadata"][field]
             manifest_metadata.append(
-                {"label": {"none": [field]}, "value": {"none": [str(metadata["metadata"][field])]}})
+                {"label": {"none": [field]}, "value": {"none": metadata_value}})
 
     manifest.metadata = manifest_metadata
 
