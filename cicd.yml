@@ -1,0 +1,23 @@
+name: CICD
+on: push
+jobs:
+  cicd:
+    runs-on: ubuntu-latest
+    permissions:
+       contents: read
+       packages: write
+       id-token: write
+    steps:
+      # https://github.com/internetarchive/cicd
+      - uses: internetarchive/cicd@v1
+        with:
+          BASE_DOMAIN: 'ux-fnf-misc.archive.org'
+          NOMAD_TOKEN: ${{ secrets.NOMAD_TOKEN }}
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          #NOMAD_VAR_CHECK_PATH: '/iiif/documentation'
+          #NOMAD_VAR_CHECK_PROTOCOL: 'http'
+          NOMAD_ADDR: 'https://ux-fnf-misc.archive.org/'
+          #NOMAD_VAR_COUNT_CANARIES: 0
+          #NOMAD_VAR_CHECK_TIMEOUT: '10m'
+          #NOMAD_VAR_HOSTNAMES: '["iiif.ux-fnf-misc.archive.org"]'
+          NOMAD_VAR_PORTS: '{8080 = "http"}'
