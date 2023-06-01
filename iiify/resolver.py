@@ -34,7 +34,8 @@ def to_mimetype(format):
         "VBR MP3": "audio/mp3",
         "Flac": "audio/flac",
         "Ogg Vorbis": "audio/ogg",
-        "WAVE": "audio/wav"
+        "WAVE": "audio/wav",
+        "MPEG4": "video/mp4"
     }
     return formats.get(format, "application/octet-stream")
 
@@ -384,6 +385,30 @@ def create_manifest3(identifier, domain=None, page=None):
             ap.add_item(anno)
             c.add_item(ap)
             manifest.add_item(c)
+
+    elif mediatype == "movies":
+        canvas_files = [f for f in metadata['files'] if f['source'].lower() == 'original' and f['format'] == "MPEG4"]
+        for file in canvas_files:
+            normalised_id = file['name'].rsplit(".", 1)[0]
+            slugged_id = normalised_id.replace(" ", "-")
+            c_id = f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/canvas"
+            c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), height=int(file['height']), width=int(file['width']))
+            ap = AnnotationPage(id=f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/page")
+            anno = Annotation(id=f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/annotation", motivation="painting", target=c.id)
+            r = ResourceItem(
+                id=f"https://archive.org/download/{identifier}/{file['name'].replace(' ', '%20')}",
+                type='Video',
+                format=to_mimetype(file['format']),
+                label={"none": [file['format']]},
+                duration=float(file['length']),
+                height=int(file['height']),
+                width=int(file['width'])
+            )
+            anno.body = r
+            ap.add_item(anno)
+            c.add_item(ap)
+            manifest.add_item(c)
+
     else:            
         print (f'Unknown mediatype "{mediatype}"')
 
