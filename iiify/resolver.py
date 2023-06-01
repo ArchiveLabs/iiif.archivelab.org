@@ -4,9 +4,10 @@ import os
 import requests
 from iiif2 import iiif, web
 from .configs import options, cors, approot, cache_root, media_root, apiurl
-from iiif_prezi3 import Manifest, config, Annotation, AnnotationPage, Canvas, Manifest, ResourceItem, ServiceItem, Choice
+from iiif_prezi3 import Manifest, config, Annotation, AnnotationPage, Canvas, Manifest, ResourceItem, ServiceItem, Choice, Collection, ManifestRef, CollectionRef
 from urllib.parse import urlparse, parse_qs
 import json
+import math 
 
 IMG_CTX = 'http://iiif.io/api/image/2/context.json'
 PRZ_CTX = 'http://iiif.io/api/presentation/2/context.json'
@@ -54,6 +55,45 @@ def collection(domain, identifiers, label='Custom Archive.org IIIF Collection'):
         })
     return cs
 
+def create_collection3(identifier, domain, page=1, rows=1000):
+    # Get item metadata
+    metadata = requests.get('%s/metadata/%s' % (ARCHIVE, identifier)).json()
+
+    # Used to build up URIs for the manifest
+    uri = f"{domain}3/{identifier}/collection.json"
+
+    config.configs['helpers.auto_fields.AutoLang'].auto_lang = "none"
+    collection = Collection(id=uri, label=metadata["metadata"]["title"])
+
+    addMetadata(collection, identifier, metadata['metadata'], collection=True)
+
+    print (f'https://archive.org/advancedsearch.php?q=collection%3A{identifier}&fl[]=identifier&fl[]=mediatype&fl[]=title&sort[]=&sort[]=&sort[]=&rows={rows}&page={page}&output=json&save=yes')
+    itemsSearch = requests.get(f'https://archive.org/advancedsearch.php?q=collection%3A{identifier}&fl[]=identifier&fl[]=mediatype&fl[]=title&sort[]=&sort[]=&sort[]=&rows={rows}&page={page}&output=json&save=yes').json()
+    total = itemsSearch['response']['numFound']
+    # There is a max of 10,000 items that can be retrieved from the advanced search
+    if total > 10000:
+        total = 10000
+
+    if len(itemsSearch['response']['docs']) == 0:
+        return None 
+
+    pages = math.ceil(total / rows)
+    for item in itemsSearch['response']['docs']:
+        child = None
+        if item['mediatype'] == 'collection':
+            child = CollectionRef(id=f"{domain}3/{item['identifier']}/collection.json", label=item['title'])
+        else: 
+            child = ManifestRef(id=f"{domain}3/{item['identifier']}/manifest.json", label=item['title'])
+
+        collection.add_item(child)
+    page += 1
+    if page <= pages:
+        child = CollectionRef(id=f"{domain}3/{identifier}/{page}/collection.json", label=f"Page {page} of {pages}")
+        collection.add_item(child)
+
+    print ('Returning collection')
+    return json.loads(collection.jsonld())
+    
 def manifest_page(identifier, label='', page='', width='', height='', metadata=None):
     metadata = metadata or {}
     return {
@@ -189,13 +229,48 @@ def create_manifest(identifier, domain=None, page=None):
             )
     return manifest
 
+def addMetadata(item, identifier, metadata, collection=False):
+    item.homepage = [{"id": f"https://archive.org/details/{identifier}",
+                         "type": "Text",
+                         "label": {"en": ["Item Page on Internet Archive"]},
+                         "format": "text/html"}]
+
+    item.provider = [{"id": "https://archive.org",
+                         "type": "Agent",
+                         "label": {"en": ["The Internet Archive"]}}]
+
+    if "licenseurl" in metadata:
+        item.rights = metadata["licenseurl"].replace("https", "http", 1)
+
+    if "description" in metadata:
+        item.summary = {"none": [metadata["description"]]}
+
+    excluded_fields = [
+        'avg_rating', 'backup_location', 'btih', 'description', 'downloads',
+        'imagecount', 'indexflag', 'item_size', 'licenseurl', 'curation', 
+        'noindex', 'num_reviews', 'oai_updatedate', 'publicdate', 'publisher',  'reviewdate',
+        'scanningcentre', 'stripped_tags', 'uploader'
+    ]
+
+    manifest_metadata = []
+
+    for field in metadata:
+        if field not in excluded_fields:
+            if type(metadata[field]) != list:
+                metadata_value = [str(metadata[field])]
+            else:
+                metadata_value = metadata[field]
+            manifest_metadata.append(
+                {"label": {"none": [field]}, "value": {"none": metadata_value}})
+
+    item.metadata = manifest_metadata
+
+
 def create_manifest3(identifier, domain=None, page=None):
     # Get item metadata
     metadata = requests.get('%s/metadata/%s' % (ARCHIVE, identifier)).json()
 
     mediatype = metadata['metadata']['mediatype']
-
-    
 
     # Used to build up URIs for the manifest
     uri = f"{domain}{identifier}"
@@ -204,44 +279,12 @@ def create_manifest3(identifier, domain=None, page=None):
 
     manifest = Manifest(id=f"{uri}/manifest.json", label=metadata["metadata"]["title"])
 
-    manifest.homepage = [{"id": f"https://archive.org/details/{identifier}",
-                         "type": "Text",
-                         "label": {"en": ["Item Page on Internet Archive"]},
-                         "format": "text/html"}]
-
-    manifest.provider = [{"id": "https://archive.org",
-                         "type": "Agent",
-                         "label": {"en": ["The Internet Archive"]}}]
-
-    if "licenseurl" in metadata["metadata"]:
-        manifest.rights = metadata["metadata"]["licenseurl"].replace("https", "http", 1)
-
-    if "description" in metadata["metadata"]:
-        manifest.summary = {"none": [metadata["metadata"]["description"]]}
-
-    excluded_fields = [
-    'avg_rating', 'backup_location', 'btih', 'description', 'downloads',
-    'imagecount', 'indexflag', 'item_size', 'licenseurl'
-    'noindex', 'num_reviews', 'oai_updatedate', 'publicdate', 'publisher',  'reviewdate',
-    'scanningcentre', 'stripped_tags', 'uploader'
-    ]
-
-    manifest_metadata = []
-
-    for field in metadata["metadata"]:
-        if field not in excluded_fields:
-            if type(metadata["metadata"][field]) != list:
-                metadata_value = [str(metadata["metadata"][field])]
-            else:
-                metadata_value = metadata["metadata"][field]
-            manifest_metadata.append(
-                {"label": {"none": [field]}, "value": {"none": metadata_value}})
-
-    manifest.metadata = manifest_metadata
+    addMetadata(manifest, identifier, metadata['metadata'])
 
     if mediatype == 'texts':
         # Get bookreader metadata (mostly for filenames and height / width of image)
         bookReaderURL = f"https://{metadata.get('server')}/BookReader/BookReaderJSIA.php?id={identifier}&itemPath={metadata.get('dir')}&server={metadata.get('server')}&format=jsonp&subPrefix={identifier}"
+        print (f'Book reader url: {bookReaderURL}')
         bookreader = requests.get(bookReaderURL).json()
         pageCount = 0
         # In json: /29/items/goody/goody_jp2.zip convert to goody/good_jp2.zip
