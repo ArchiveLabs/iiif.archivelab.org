@@ -1,10 +1,7 @@
-FROM ubuntu:latest
-RUN apt-get update -y
-RUN apt-get upgrade -y
-RUN apt-get install -y python-pip python-dev build-essential
-COPY . /iiify
-WORKDIR /iiify
-RUN pip install -r requirements.txt
-ENTRYPOINT ["python"]
+FROM tiangolo/uwsgi-nginx-flask:python3.11
+ENV LISTEN_PORT 8080
 EXPOSE 8080
-CMD ["/iiify/iiify/app.py"]
+COPY ./requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
+COPY . /app
+COPY ./nginx-vhost.conf /etc/nginx/conf.d/nginx.conf
