@@ -18,6 +18,6 @@ jobs:
           NOMAD_VAR_CHECK_PROTOCOL: 'http'
           NOMAD_ADDR: 'https://ux-fnf-misc.archive.org/'
           NOMAD_VAR_COUNT_CANARIES: 0
-          # NOMAD_VAR_CHECK_TIMEOUT: '10m'
+          #NOMAD_VAR_CHECK_TIMEOUT: '10m'
           NOMAD_VAR_HOSTNAMES: '["iiif.ux-fnf-misc.archive.org"]'
           NOMAD_VAR_PORTS: '{8080 = "http"}'
