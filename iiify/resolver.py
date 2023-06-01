@@ -67,8 +67,8 @@ def create_collection3(identifier, domain, page=1, rows=1000):
 
     addMetadata(collection, identifier, metadata['metadata'], collection=True)
 
-    print (f'https://archive.org/advancedsearch.php?q=collection%3A{identifier}&fl[]=identifier&fl[]=mediatype&fl[]=title&sort[]=&sort[]=&sort[]=&rows={rows}&page={page}&output=json&save=yes')
-    itemsSearch = requests.get(f'https://archive.org/advancedsearch.php?q=collection%3A{identifier}&fl[]=identifier&fl[]=mediatype&fl[]=title&sort[]=&sort[]=&sort[]=&rows={rows}&page={page}&output=json&save=yes').json()
+    asURL = f'https://archive.org/advancedsearch.php?q=collection%3A{identifier}&fl[]=identifier&fl[]=mediatype&fl[]=title&fl[]=description&sort[]=&sort[]=&sort[]=&rows={rows}&page={page}&output=json&save=yes'
+    itemsSearch = requests.get(asURL).json()
     total = itemsSearch['response']['numFound']
     # There is a max of 10,000 items that can be retrieved from the advanced search
     if total > 10000:
@@ -81,14 +81,15 @@ def create_collection3(identifier, domain, page=1, rows=1000):
     for item in itemsSearch['response']['docs']:
         child = None
         if item['mediatype'] == 'collection':
-            child = CollectionRef(id=f"{domain}3/{item['identifier']}/collection.json", label=item['title'])
+            child = CollectionRef(id=f"{domain}3/{item['identifier']}/collection.json", type="Collection", label=item['title'])
         else: 
-            child = ManifestRef(id=f"{domain}3/{item['identifier']}/manifest.json", label=item['title'])
+            child = ManifestRef(id=f"{domain}3/{item['identifier']}/manifest.json", type="Manifest", label=item['title'])
+        child.summary = item['description']    
 
         collection.add_item(child)
     page += 1
     if page <= pages:
-        child = CollectionRef(id=f"{domain}3/{identifier}/{page}/collection.json", label=f"Page {page} of {pages}")
+        child = CollectionRef(id=f"{domain}3/{identifier}/{page}/collection.json", type="Collection", label=f"Page {page} of {pages}")
         collection.add_item(child)
 
     print ('Returning collection')

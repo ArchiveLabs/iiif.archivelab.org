@@ -13,6 +13,8 @@ from .configs import options, cors, approot, cache_root, media_root, \
 
 
 app = Flask(__name__)
+# disabling sorting of the output json
+app.config['JSON_SORT_KEYS'] = False
 cors = CORS(app) if cors else None
 
 def sprite_concat(imgs):
