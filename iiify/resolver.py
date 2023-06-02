@@ -190,6 +190,30 @@ def create_manifest(identifier, domain=None, page=None):
             )
     return manifest
 
+def singleImage(metadata, identifier, manifest, uri):
+    fileName = ""
+    for f in metadata['files']:
+        if valid_filetype(f['name']) \
+            and f['source'].lower() == 'original' \
+            and 'thumb' not in f['name']:
+            fileName = f['name']
+            break    
+
+    if not fileName:
+        # Original wasn't an image
+        for f in metadata['files']:
+            if '_jp2.zip' in f['name']:
+                fileName = f"{f['name']}/{f['name'].replace('.zip','')}/{f['name'].replace('jp2.zip','0000.jp2')}"
+
+    imgId = f"{identifier}/{fileName}".replace('/','%2f')
+    imgURL = f"{IMG_SRV}/3/{imgId}"
+    
+    manifest.make_canvas_from_iiif(url=imgURL,
+                                    id=f"https://iiif.archivelab.org/iiif/{identifier}/canvas",
+                                    label="1",
+                                    anno_page_id=f"{uri}/annotationPage/1",
+                                    anno_id=f"{uri}/annotation/1")    
+
 def create_manifest3(identifier, domain=None, page=None):
     # Get item metadata
     metadata = requests.get('%s/metadata/%s' % (ARCHIVE, identifier)).json()
@@ -243,52 +267,45 @@ def create_manifest3(identifier, domain=None, page=None):
     if mediatype == 'texts':
         # Get bookreader metadata (mostly for filenames and height / width of image)
         bookReaderURL = f"https://{metadata.get('server')}/BookReader/BookReaderJSIA.php?id={identifier}&itemPath={metadata.get('dir')}&server={metadata.get('server')}&format=jsonp&subPrefix={identifier}"
+        print (bookReaderURL)
         bookreader = requests.get(bookReaderURL).json()
-        pageCount = 0
-        # In json: /29/items/goody/goody_jp2.zip convert to goody/good_jp2.zip
-        zipFile = '/'.join(bookreader['data']['brOptions']['zip'].split('/')[-2:])
+        if 'error' in bookreader:
+            # Image stack not found. Maybe a single image
+            singleImage(metadata, identifier, manifest, uri)
+        else:
+            pageCount = 0
+            # In json: /29/items/goody/goody_jp2.zip convert to goody/good_jp2.zip
+            zipFile = '/'.join(bookreader['data']['brOptions']['zip'].split('/')[-2:])
 
-        for pageSpread in bookreader['data']['brOptions']['data']:
-            for page in pageSpread:
-                fileUrl = urlparse(page['uri'])
-                fileName = parse_qs(fileUrl.query).get('file')[0]
-                imgId = f"{zipFile}/{fileName}".replace('/','%2f')
-                imgURL = f"{IMG_SRV}/3/{imgId}"
+            for pageSpread in bookreader['data']['brOptions']['data']:
+                for page in pageSpread:
+                    fileUrl = urlparse(page['uri'])
+                    fileName = parse_qs(fileUrl.query).get('file')[0]
+                    imgId = f"{zipFile}/{fileName}".replace('/','%2f')
+                    imgURL = f"{IMG_SRV}/3/{imgId}"
 
-                canvas = Canvas(id=f"https://iiif.archivelab.org/iiif/{identifier}${pageCount}/canvas", label=f"{page['leafNum']}")
+                    canvas = Canvas(id=f"https://iiif.archivelab.org/iiif/{identifier}${pageCount}/canvas", label=f"{page['leafNum']}")
 
-                body = ResourceItem(id=f"{imgURL}/full/max/0/default.jpg", type="Image")
-                body.format = "image/jpeg"
-                body.service = [ServiceItem(id=imgURL, profile="level2", type="ImageService3")]
+                    body = ResourceItem(id=f"{imgURL}/full/max/0/default.jpg", type="Image")
+                    body.format = "image/jpeg"
+                    body.service = [ServiceItem(id=imgURL, profile="level2", type="ImageService3")]
 
-                annotation = Annotation(id=f"{uri}/annotation/{pageCount}", motivation='painting', body=body, target=canvas.id)
+                    annotation = Annotation(id=f"{uri}/annotation/{pageCount}", motivation='painting', body=body, target=canvas.id)
 
-                annotationPage = AnnotationPage(id=f"{uri}/annotationPage/{pageCount}")
-                annotationPage.add_item(annotation)
+                    annotationPage = AnnotationPage(id=f"{uri}/annotationPage/{pageCount}")
+                    annotationPage.add_item(annotation)
 
-                canvas.add_item(annotationPage)
-                canvas.set_hwd(page['height'], page['width'])
+                    canvas.add_item(annotationPage)
+                    canvas.set_hwd(page['height'], page['width'])
 
-                manifest.add_item(canvas)
-                # Create canvas from IIIF image service. Note this is very slow:
-                #canvas = manifest.make_canvas_from_iiif(url=imgURL,
-                #                            id=f"https://iiif.archivelab.org/iiif/{identifier}${pageCount}/canvas",
-                #                            label=f"{page['leafNum']}")
-                pageCount += 1
+                    manifest.add_item(canvas)
+                    # Create canvas from IIIF image service. Note this is very slow:
+                    #canvas = manifest.make_canvas_from_iiif(url=imgURL,
+                    #                            id=f"https://iiif.archivelab.org/iiif/{identifier}${pageCount}/canvas",
+                    #                            label=f"{page['leafNum']}")
+                    pageCount += 1
     elif mediatype == 'image':
-        f = next(f for f in metadata['files'] if valid_filetype(f['name']) \
-                         and f['source'].lower() == 'original' \
-                         and 'thumb' not in f['name'] )
-        
-        imgId = f"{identifier}/{f['name']}".replace('/','%2f')
-        imgURL = f"{IMG_SRV}/3/{imgId}"
-        
-        manifest.make_canvas_from_iiif(url=imgURL,
-                                       id=f"https://iiif.archivelab.org/iiif/{identifier}/canvas",
-                                       label="1",
-                                       anno_page_id=f"{uri}/annotationPage/1",
-                                       anno_id=f"{uri}/annotation/1")
-
+        singleImage(metadata, identifier, manifest, uri)
     elif mediatype == 'audio':
         # sort the files into originals and derivatives, splitting the derivatives into buckets based on the original
         originals = []

@@ -23,5 +23,14 @@ class TestManifests(unittest.TestCase):
         self.assertEqual(manifest['type'], "Manifest", f"Unexpected type. Expected Manifest go {manifest['type']}")
         self.assertEqual(len(manifest['items']),1,f"Expected 1 canvas but got: {len(manifest['items'])}")
 
+    def test_v3_single_text_manifest(self):
+        resp = self.test_app.get("/iiif/3/fbf_3chords_1_/manifest.json")
+        self.assertEqual(resp.status_code, 200)
+        manifest = resp.json
+
+        self.assertEqual(manifest['type'], "Manifest", f"Unexpected type. Expected Manifest go {manifest['type']}")
+        self.assertEqual(len(manifest['items']),1,f"Expected 1 canvas but got: {len(manifest['items'])}")
+
+
 if __name__ == '__main__':
     unittest.main()
