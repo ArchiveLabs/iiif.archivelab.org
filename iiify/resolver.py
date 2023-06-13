@@ -90,7 +90,7 @@ def create_collection3(identifier, domain, page=1, rows=1000):
         collection.add_item(child)
     page += 1
     if page <= pages:
-        child = CollectionRef(id=f"{domain}3/{identifier}/{page}/collection.json", type="Collection", label=f"Page {page} of {pages}")
+        child = CollectionRef(id=f"{domain}3/{identifier}/{page}/collection.json", type="Collection", label={ "en": [f"Page {page} of {pages}"]})
         collection.add_item(child)
 
     print ('Returning collection')
