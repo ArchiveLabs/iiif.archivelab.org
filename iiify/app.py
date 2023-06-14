@@ -6,13 +6,15 @@ from flask import Flask, send_file, jsonify, abort, request, render_template, re
 from flask_cors import CORS
 from iiif2 import iiif, web
 from .resolver import ia_resolver, create_manifest, create_manifest3, getids, collection, \
-    purify_domain, cantaloupe_resolver
+    purify_domain, cantaloupe_resolver, create_collection3
 from .url2iiif import url2ia
 from .configs import options, cors, approot, cache_root, media_root, \
     cache_expr, version, image_server
 
 
 app = Flask(__name__)
+# disabling sorting of the output json
+app.config['JSON_SORT_KEYS'] = False
 cors = CORS(app) if cors else None
 
 def sprite_concat(imgs):
@@ -91,6 +93,37 @@ def view(identifier):
                                info=web.info(uri, path))
     return render_template('reader.html', domain=request.base_url, page=page, citation=citation)
 
+@app.route('/iiif/3/<identifier>/collection.json')
+def collection3(identifier):
+    domain = purify_domain(request.args.get('domain', request.url_root))
+    
+    try:
+        collection = create_collection3(identifier, domain=domain)
+        if not collection:
+            abort(404)
+            return
+
+        return ldjsonify(collection)
+    except Exception as excpt:
+        print (excpt)
+        raise excpt 
+
+@app.route('/iiif/3/<identifier>/<page>/collection.json')
+def collection3page(identifier,page):
+    domain = purify_domain(request.args.get('domain', request.url_root))
+    
+    try:
+        collection = create_collection3(identifier, domain=domain, page=int(page))
+
+        if not collection:
+            abort(404)
+            return
+
+        return ldjsonify(collection)
+    except Exception as excpt:
+        print (excpt)
+        raise excpt 
+
 @app.route('/iiif/3/<identifier>/manifest.json')
 def manifest3(identifier):
     domain = purify_domain(request.args.get('domain', request.url_root))
@@ -99,7 +132,9 @@ def manifest3(identifier):
     try:
         return ldjsonify(create_manifest3(identifier, domain=domain, page=page))
     except Exception as excpt:
+        print ('Exception occured in manifest3:')
         print (excpt)
+        raise excpt 
         #abort(404)
 
 @app.route('/iiif/<identifier>/manifest.json')
