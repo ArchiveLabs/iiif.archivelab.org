@@ -35,7 +35,8 @@ def sprite_concat(imgs):
 
 @app.route('/foo')
 def index():
-  return "hey there"
+  # Just a perm error to test
+  abort(403)
 
 @app.route('/iiif/')
 def index():
