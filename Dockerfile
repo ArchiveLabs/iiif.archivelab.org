@@ -3,6 +3,9 @@ ENV LISTEN_PORT 8080
 EXPOSE 8080
 COPY ./requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
+
+RUN echo "testing.. just foo."
+
 COPY . /app
 
 COPY ./nginx-vhost.conf /etc/nginx/conf.d/nginx.conf
