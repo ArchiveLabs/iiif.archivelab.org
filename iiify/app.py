@@ -33,11 +33,6 @@ def sprite_concat(imgs):
         x_offset += im.size[0]
     return new_im
 
-@app.route('/foo')
-def index():
-  # Just a perm error to test
-  abort(403)
-
 @app.route('/iiif/')
 def index():
     """Lists all available book and image items on Archive.org"""
