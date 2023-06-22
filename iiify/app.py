@@ -33,6 +33,9 @@ def sprite_concat(imgs):
         x_offset += im.size[0]
     return new_im
 
+@app.route('/beep')
+  return "boop"
+
 @app.route('/iiif/')
 def index():
     """Lists all available book and image items on Archive.org"""
