@@ -16,7 +16,7 @@ IMG_SRV = 'https://services-ia-iiif-cantaloupe-experiment.dev.archive.org/iiif'
 METADATA_FIELDS = ("title", "volume", "publisher", "subject", "date", "contributor", "creator")
 bookdata = 'http://%s/BookReader/BookReaderJSON.php'
 bookreader = "http://%s/BookReader/BookReaderImages.php"
-valid_filetypes = ['jpg', 'jpeg', 'png', 'gif', 'tif', 'jp2', 'pdf']
+valid_filetypes = ['jpg', 'jpeg', 'png', 'gif', 'tif', 'jp2', 'pdf', 'tiff']
 
 def purify_domain(domain):
     return domain if domain.endswith('/iiif/') else domain + 'iiif/'
@@ -507,20 +507,59 @@ def cantaloupe_resolver(identifier):
 
     if mediatype == "image":
         # single image file - find the filename
-        filename = next(f for f in files if valid_filetype(f['name']) \
+
+        filename = None
+        for f in files: 
+            if valid_filetype(f['name']) \
                  and f['source'].lower() == 'original' \
-                 and 'thumb' not in f['name'])['name']
+                 and 'thumb' not in f['name']:
+
+                filename = f['name'].replace(" ", "%20")
+
         if filename:
             return f"{identifier}%2f{filename}"
+
     elif mediatype == "texts" and leaf:
         # book - find the jp2 zip and assume the filename?
         # TODO: use one of the BookReader (or other) APIs to be 100% certain here
-        filename = next(f for f in files if f['source'].lower() == 'derivative' \
-                        and f['name'].endswith('_jp2.zip'))['name']
+        filename = None
+        fileIdentifier = ""
+        extension = ".jp2"
+
+        # First try the identifier then _jp2.zip
+        for f in files:
+            if f['name'].lower() == f'{identifier.lower()}_jp2.zip':
+                filename = f['name']
+                fileIdentifier = filename[:-1 * len('_jp2.zip')]
+
+        # next look for any _jp2.zip that has a different name to the identifier 
+        if not filename:
+            for f in files:
+                if f['name'].endswith('_jp2.zip'):
+                    filename = f['name']
+                    fileIdentifier = filename[:-1 * len('_jp2.zip')]
+        # Prefer zip files but if not return tar
+        if not filename:
+            for f in files:
+                if f['name'].endswith('_jp2.tar'):
+                    filename = f['name']
+                    fileIdentifier = filename[:-1 * len('_jp2.tar')]
+
+        # if no jp2s look for tiffs
+        if not filename:
+            for f in files:
+                if f['name'].endswith('_tif.zip'):
+                    filename = f['name']
+                    fileIdentifier = filename[:-1 * len('_tif.zip')]
+                    extension = ".tif"
+
+        #filename = next(f for f in files if f['source'].lower() == 'derivative' \
+        #                and f['name'].endswith('_jp2.zip'))['name']
         if filename:
             dirpath = filename[:-4]
-            filepath = f"{identifier}_{leaf.zfill(4)}.jp2"
+            filepath = f"{fileIdentifier}_{leaf.zfill(4)}{extension}"
             return f"{identifier}%2f{filename}%2f{dirpath}%2f{filepath}"
 
-
-
+    print (f'images not found for {identifier}')    
+    for f in files:
+        print (f"source: {f['source'].lower()} name: {f['name']} and {f['source'].lower() == 'derivative'} {f['name'].endswith('_jp2.zip')}")
