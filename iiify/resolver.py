@@ -85,7 +85,9 @@ def create_collection3(identifier, domain, page=1, rows=1000):
             child = CollectionRef(id=f"{domain}3/{item['identifier']}/collection.json", type="Collection", label=item['title'])
         else: 
             child = ManifestRef(id=f"{domain}3/{item['identifier']}/manifest.json", type="Manifest", label=item['title'])
-        child.summary = item['description']    
+        
+        if "description" in item:
+            child.summary = {"none": [item['description']]} 
 
         collection.add_item(child)
     page += 1
