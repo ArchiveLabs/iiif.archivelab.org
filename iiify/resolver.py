@@ -311,7 +311,14 @@ def create_manifest3(identifier, domain=None, page=None):
 
     if mediatype == 'texts':
         # Get bookreader metadata (mostly for filenames and height / width of image)
-        bookReaderURL = f"https://{metadata.get('server')}/BookReader/BookReaderJSIA.php?id={identifier}&itemPath={metadata.get('dir')}&server={metadata.get('server')}&format=jsonp&subPrefix={identifier}"
+        # subprefix can be different from the identifier use the scandata filename to find the correct prefix
+        # if not present fall back to identifier
+        subprefix = identifier
+        for fileMd in metadata['files']:
+            if fileMd['name'].endswith('_scandata.xml'):
+                subprefix = fileMd['name'].replace('_scandata.xml', '')
+
+        bookReaderURL = f"https://{metadata.get('server')}/BookReader/BookReaderJSIA.php?id={identifier}&itemPath={metadata.get('dir')}&server={metadata.get('server')}&format=jsonp&subPrefix={subprefix}"
 
         print (f'Book reader url: {bookReaderURL}')
         bookreader = requests.get(bookReaderURL).json()
