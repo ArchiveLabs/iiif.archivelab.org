@@ -359,7 +359,7 @@ def create_manifest3(identifier, domain=None, page=None):
                     pageCount += 1
     elif mediatype == 'image':
         singleImage(metadata, identifier, manifest, uri)
-    elif mediatype == 'audio':
+    elif mediatype == 'audio' or mediatype == 'etree':
         # sort the files into originals and derivatives, splitting the derivatives into buckets based on the original
         originals = []
         derivatives = {}
@@ -373,7 +373,7 @@ def create_manifest3(identifier, domain=None, page=None):
                 originals.append(f)
 
         # create the canvases for each original
-        for file in [f for f in originals if f['format'] in ['VBR MP3', 'Flac', 'Ogg Vorbis', 'WAVE']]:
+        for file in [f for f in originals if f['format'] in ['VBR MP3', 'Flac', 'Ogg Vorbis', 'WAVE','24bit Flac']]:
             normalised_id = file['name'].rsplit(".", 1)[0]
             slugged_id = normalised_id.replace(" ", "-")
             c_id = f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/canvas"
