@@ -35,7 +35,9 @@ def to_mimetype(format):
         "Flac": "audio/flac",
         "Ogg Vorbis": "audio/ogg",
         "WAVE": "audio/wav",
-        "MPEG4": "video/mp4"
+        "MPEG4": "video/mp4",
+        "24bit Flac": "audio/flac",
+        'Shorten': "audio/shn"
     }
     return formats.get(format, "application/octet-stream")
 
