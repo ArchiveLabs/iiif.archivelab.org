@@ -379,7 +379,7 @@ def create_manifest3(identifier, domain=None, page=None):
         originals = []
         derivatives = {}
         for f in metadata['files']:
-            if f['source'] == 'derivative':
+            if f['source'] == 'derivative' and not isinstance(f['original'], list):
                 if f['original'] in derivatives:
                     derivatives[f['original']][f['format']] = f
                 else:
@@ -388,7 +388,7 @@ def create_manifest3(identifier, domain=None, page=None):
                 originals.append(f)
 
         # create the canvases for each original
-        for file in [f for f in originals if f['format'] in ['VBR MP3', 'Flac', 'Ogg Vorbis', 'WAVE', '24bit Flac', 'Shorten']]:
+        for file in [f for f in originals if f['format'] in ['VBR MP3', '32Kbps MP3', '56Kbps MP3', '64Kbps MP3', '96Kbps MP3', '128Kbps MP3', 'Flac', 'Ogg Vorbis', 'WAVE', '24bit Flac', 'Shorten']]:
             normalised_id = file['name'].rsplit(".", 1)[0]
             slugged_id = normalised_id.replace(" ", "-")
             c_id = f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/canvas"
