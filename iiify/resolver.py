@@ -32,12 +32,25 @@ def getids(q, limit=1000, cursor=''):
 def to_mimetype(format):
     formats = {
         "VBR MP3": "audio/mp3",
+        '32Kbps MP3': "audio/mp3",
+        "56Kbps MP3": "audio/mp3",
+        "64Kbps MP3": "audio/mp3",
+        "96Kbps MP3": "audio/mp3",
+        "128Kbps MP3": "audio/mp3",
         "Flac": "audio/flac",
         "Ogg Vorbis": "audio/ogg",
+        "Ogg Video": "video/ogg",
         "WAVE": "audio/wav",
         "MPEG4": "video/mp4",
         "24bit Flac": "audio/flac",
-        'Shorten': "audio/shn"
+        'Shorten': "audio/shn",
+        "MPEG2": "video/mpeg",
+        "512Kb MPEG4": "video/mpeg",
+        "HiRes MPEG4": "video/mpeg",
+        "h.264 MPEG4": "video/mpeg",
+        "h.264": "video/mpeg",
+        "Matroska": "video/x-matroska",
+        "Cinepack": "video/x-msvideo"
     }
     return formats.get(format, "application/octet-stream")
 
