@@ -428,24 +428,59 @@ def create_manifest3(identifier, domain=None, page=None):
             manifest.add_item(c)
 
     elif mediatype == "movies":
-        canvas_files = [f for f in metadata['files'] if f['source'].lower() == 'original' and f['format'] == "MPEG4"]
-        for file in canvas_files:
+        # sort the files into originals and derivatives, splitting the derivatives into buckets based on the original
+        originals = []
+        derivatives = {}
+        for f in metadata['files']:
+            if f['source'] == 'derivative':
+                if f['original'] in derivatives:
+                    derivatives[f['original']][f['format']] = f
+                else:
+                    derivatives[f['original']] = {f['format']: f}
+            elif f['source'] == 'original':
+                originals.append(f)
+            
+        # create the canvases for each original
+        for file in [f for f in originals if f['format'] in ['MPEG4', 'h.264 MPEG4', '512Kb MPEG4', 'HiRes MPEG4', 'MPEG2', 'h.264', 'Matroska', 'Ogg Video', 'Ogg Theora', 'WebM', 'Windows Media', 'Cinepack']]:
             normalised_id = file['name'].rsplit(".", 1)[0]
             slugged_id = normalised_id.replace(" ", "-")
             c_id = f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/canvas"
             c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), height=int(file['height']), width=int(file['width']))
+
+            # create intermediary objects
             ap = AnnotationPage(id=f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/page")
             anno = Annotation(id=f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/annotation", motivation="painting", target=c.id)
-            r = ResourceItem(
-                id=f"https://archive.org/download/{identifier}/{file['name'].replace(' ', '%20')}",
-                type='Video',
-                format=to_mimetype(file['format']),
-                label={"none": [file['format']]},
-                duration=float(file['length']),
-                height=int(file['height']),
-                width=int(file['width'])
-            )
-            anno.body = r
+
+            # create body based on whether there are derivatives or not:
+            if file['name'] in derivatives:
+                body = Choice(items=[])
+                # add the choices in order per https://github.com/ArchiveLabs/iiif.archivelab.org/issues/77#issuecomment-1499672734
+                for format in ['MPEG4', 'h.264 MPEG4', '512Kb MPEG4', 'HiRes MPEG4', 'MPEG2', 'h.264', 'Matroska', 'Ogg Video', 'Ogg Theora', 'WebM', 'Windows Media', 'Cinepack']:
+                    if format in derivatives[file['name']]:
+                        r = ResourceItem(id=f"https://archive.org/download/{identifier}/{derivatives[file['name']][format]['name'].replace(' ', '%20')}",
+                                         type='Video',
+                                         format=to_mimetype(format),
+                                         label={"none": [format]},
+                                         duration=float(file['length']), 
+                                         height=int(file['height']),
+                                         width=int(file['width']),                      
+                        )
+                        body.items.append(r)
+                    elif file['format'] == format:
+                        r = ResourceItem(
+                            id=f"https://archive.org/download/{identifier}/{file['name'].replace(' ', '%20')}",
+                            type='Video',
+                            format=to_mimetype(format),
+                            label={"none": [format]},
+                            duration=float(file['length']),
+                            height=int(file['height']),
+                            width=int(file['width']))
+                        body.items.append(r)
+            else:
+                # todo: deal with instances where there are no derivatives for whatever reason
+                pass
+
+            anno.body = body
             ap.add_item(anno)
             c.add_item(ap)
             manifest.add_item(c)
