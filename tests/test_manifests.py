@@ -52,14 +52,14 @@ class TestManifests(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         manifest = resp.json
 
-        self.assertEqual(len(manifest['items']),36,f"Expected 1 canvas but got: {len(manifest['items'])}")
+        self.assertEqual(len(manifest['items']),36,f"Expected 36 canvases but got: {len(manifest['items'])}")
 
 
     def test_v3_64Kbps_MP3(self):
         resp = self.test_app.get("/iiif/3/TvQuran.com__Alafasi/manifest.json")
         self.assertEqual(resp.status_code, 200)
         manifest = resp.json
-        self.assertEqual(len(manifest['items']),114,f"Expected 1 canvas but got: {len(manifest['items'])}")
+        self.assertEqual(len(manifest['items']),114,f"Expected 114 canvases but got: {len(manifest['items'])}")
         self.assertEqual("64Kbps MP3".lower() in resp.text.lower(), True, f"Expected the string '64Kbps MP3'")
 
 
@@ -67,14 +67,14 @@ class TestManifests(unittest.TestCase):
         resp = self.test_app.get("/iiif/3/alice_in_wonderland_librivox/manifest.json")
         self.assertEqual(resp.status_code, 200)
         manifest = resp.json
-        self.assertEqual(len(manifest['items']),12,f"Expected 1 canvas but got: {len(manifest['items'])}")
+        self.assertEqual(len(manifest['items']),12,f"Expected 12 canvases but got: {len(manifest['items'])}")
         self.assertEqual("128kbps mp3".lower() in resp.text.lower(), True, f"Expected the string '128kbps mp3'")
 
     def test_v3_h264_MPEG4_OGG_Theora(self):
         resp = self.test_app.get("/iiif/3/taboca_201002_03/manifest.json")
         self.assertEqual(resp.status_code, 200)
         manifest = resp.json
-        self.assertEqual(len(manifest['items']),251,f"Expected 1 canvas but got: {len(manifest['items'])}")
+        self.assertEqual(len(manifest['items']),251,f"Expected 251 canvases but got: {len(manifest['items'])}")
         self.assertEqual("h.264 MPEG4".lower() in resp.text.lower(), True, f"Expected the string 'h.264 MPEG4'")
         self.assertEqual("OGG Theora".lower() in resp.text.lower(), True, f"Expected the string 'OGG Theora'")
 
@@ -82,7 +82,7 @@ class TestManifests(unittest.TestCase):
         resp = self.test_app.get("/iiif/3/PDextend_AIFF/manifest.json")
         self.assertEqual(resp.status_code, 200)
         manifest = resp.json
-        self.assertEqual(len(manifest['items']),38,f"Expected 1 canvas but got: {len(manifest['items'])}")
+        self.assertEqual(len(manifest['items']),38,f"Expected 38 canvases but got: {len(manifest['items'])}")
         self.assertEqual("AIFF".lower() in resp.text.lower(), True, f"Expected the string 'AIFF'")
 
 ''' to test:
