@@ -32,7 +32,7 @@ def getids(q, limit=1000, cursor=''):
 def to_mimetype(format):
     formats = {
         "VBR MP3": "audio/mp3",
-        '32Kbps MP3': "audio/mp3",
+        "32Kbps MP3": "audio/mp3",
         "56Kbps MP3": "audio/mp3",
         "64Kbps MP3": "audio/mp3",
         "96Kbps MP3": "audio/mp3",
