@@ -20,6 +20,7 @@ app.config['CACHE_TYPE'] = "FileSystemCache"
 app.config['CACHE_DIR'] = "cache"
 cors = CORS(app) if cors else None
 cache = Cache(app)
+# cache.init_app(app)
 
 def sprite_concat(imgs):
     from PIL import Image
@@ -66,7 +67,7 @@ def catalog():
     return ldjsonify(collection(domain, getids(q, limit, cursor)['ids']))
 
 @app.route('/iiif/cache')
-def cache():
+def list_cache():
     """Lists all recently cached images"""
     return jsonify({'identifiers': [f for f in os.listdir(media_root)]})
 
