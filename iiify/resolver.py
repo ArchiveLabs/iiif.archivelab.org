@@ -391,7 +391,7 @@ def create_manifest3(identifier, domain=None, page=None):
                 originals.append(f)
 
         # create the canvases for each original
-        for file in [f for f in originals if f['format'] in ['VBR MP3', '32Kbps MP3', '56Kbps MP3', '64Kbps MP3', '96Kbps MP3', '128Kbps MP3', 'MPEG-4 Audio', 'Flac', 'AIFF', 'Apple Lossless Audio', 'Ogg Vorbis', 'WAVE', '24bit Flac', 'Shorten']]:
+        for file in [f for f in originals if f['format'] in ['VBR MP3', '128Kbps MP3', '96Kbps MP3', '64Kbps MP3', '56Kbps MP3', '32Kbps MP3', 'MPEG-4 Audio', 'Flac', 'AIFF', 'Apple Lossless Audio', 'Ogg Vorbis', 'WAVE', '24bit Flac', 'Shorten']]:
             normalised_id = file['name'].rsplit(".", 1)[0]
             slugged_id = normalised_id.replace(" ", "-")
             c_id = f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/canvas"
@@ -405,7 +405,7 @@ def create_manifest3(identifier, domain=None, page=None):
             if file['name'] in derivatives:
                 body = Choice(items=[])
                 # add the choices in order per https://github.com/ArchiveLabs/iiif.archivelab.org/issues/77#issuecomment-1499672734
-                for format in ['VBR MP3', '32Kbps MP3', '56Kbps MP3', '64Kbps MP3', '96Kbps MP3', '128Kbps MP3', 'MPEG-4 Audio', 'Flac', 'AIFF', 'Apple Lossless Audio', 'Ogg Vorbis', 'WAVE', '24bit Flac', 'Shorten']:
+                for format in ['VBR MP3', '128Kbps MP3', '96Kbps MP3', '64Kbps MP3', '56Kbps MP3', '32Kbps MP3', 'MPEG-4 Audio', 'Flac', 'AIFF', 'Apple Lossless Audio', 'Ogg Vorbis', 'WAVE', '24bit Flac', 'Shorten']:
                     if format in derivatives[file['name']]:
                         r = ResourceItem(id=f"https://archive.org/download/{identifier}/{derivatives[file['name']][format]['name'].replace(' ', '%20')}",
                                          type='Audio',
