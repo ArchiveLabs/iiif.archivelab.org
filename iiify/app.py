@@ -4,18 +4,22 @@ import os
 import time
 from flask import Flask, send_file, jsonify, abort, request, render_template, redirect
 from flask_cors import CORS
+from flask_caching import Cache
 from iiif2 import iiif, web
 from .resolver import ia_resolver, create_manifest, create_manifest3, getids, collection, \
     purify_domain, cantaloupe_resolver, create_collection3
 from .url2iiif import url2ia
 from .configs import options, cors, approot, cache_root, media_root, \
-    cache_expr, version, image_server
+    cache_expr, version, image_server, cache_timeouts
 
 
 app = Flask(__name__)
 # disabling sorting of the output json
 app.config['JSON_SORT_KEYS'] = False
+app.config['CACHE_TYPE'] = "FileSystemCache"
+app.config['CACHE_DIR'] = "cache"
 cors = CORS(app) if cors else None
+cache = Cache(app)
 
 def sprite_concat(imgs):
     from PIL import Image
@@ -94,6 +98,7 @@ def view(identifier):
     return render_template('reader.html', domain=request.base_url, page=page, citation=citation)
 
 @app.route('/iiif/3/<identifier>/collection.json')
+@cache.cached(timeout=cache_timeouts["med"])
 def collection3(identifier):
     domain = purify_domain(request.args.get('domain', request.url_root))
     
@@ -109,6 +114,7 @@ def collection3(identifier):
         raise excpt 
 
 @app.route('/iiif/3/<identifier>/<page>/collection.json')
+@cache.cached(timeout=cache_timeouts["med"])
 def collection3page(identifier,page):
     domain = purify_domain(request.args.get('domain', request.url_root))
     
@@ -125,6 +131,7 @@ def collection3page(identifier,page):
         raise excpt 
 
 @app.route('/iiif/3/<identifier>/manifest.json')
+@cache.cached(timeout=cache_timeouts["long"])
 def manifest3(identifier):
     domain = purify_domain(request.args.get('domain', request.url_root))
     page = None
@@ -138,6 +145,7 @@ def manifest3(identifier):
         #abort(404)
 
 @app.route('/iiif/<identifier>/manifest.json')
+@cache.cached(timeout=cache_timeouts["long"])
 def manifest(identifier):
     domain = purify_domain(request.args.get('domain', request.url_root))
     page = None
