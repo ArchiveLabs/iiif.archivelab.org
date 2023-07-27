@@ -139,6 +139,10 @@ def manifest3(identifier):
 
 @app.route('/iiif/<identifier>/manifest.json')
 def manifest(identifier):
+    return manifest2(identifier)
+
+@app.route('/iiif/2/<identifier>/manifest.json')
+def manifest2(identifier):
     domain = purify_domain(request.args.get('domain', request.url_root))
     page = None
     if '$' in identifier:

@@ -16,6 +16,8 @@ IMG_SRV = 'https://services-ia-iiif-cantaloupe-experiment.dev.archive.org/iiif'
 METADATA_FIELDS = ("title", "volume", "publisher", "subject", "date", "contributor", "creator")
 bookdata = 'http://%s/BookReader/BookReaderJSON.php'
 bookreader = "http://%s/BookReader/BookReaderImages.php"
+URI_PRIFIX = "https://iiif.archive.org/iiif"
+
 valid_filetypes = ['jpg', 'jpeg', 'png', 'gif', 'tif', 'jp2', 'pdf', 'tiff']
 
 def purify_domain(domain):
@@ -270,7 +272,7 @@ def singleImage(metadata, identifier, manifest, uri):
     imgURL = f"{IMG_SRV}/3/{imgId}"
     
     manifest.make_canvas_from_iiif(url=imgURL,
-                                    id=f"https://iiif.archivelab.org/iiif/{identifier}/canvas",
+                                    id=f"{URI_PRIFIX}/{identifier}/canvas",
                                     label="1",
                                     anno_page_id=f"{uri}/annotationPage/1",
                                     anno_id=f"{uri}/annotation/1")    
@@ -355,7 +357,7 @@ def create_manifest3(identifier, domain=None, page=None):
                     imgId = f"{zipFile}/{fileName}".replace('/','%2f')
                     imgURL = f"{IMG_SRV}/3/{imgId}"
 
-                    canvas = Canvas(id=f"https://iiif.archivelab.org/iiif/{identifier}${pageCount}/canvas", label=f"{page['leafNum']}")
+                    canvas = Canvas(id=f"{URI_PRIFIX}/{identifier}${pageCount}/canvas", label=f"{page['leafNum']}")
 
                     body = ResourceItem(id=f"{imgURL}/full/max/0/default.jpg", type="Image")
                     body.format = "image/jpeg"
@@ -394,12 +396,12 @@ def create_manifest3(identifier, domain=None, page=None):
         for file in [f for f in originals if f['format'] in ['VBR MP3', '32Kbps MP3', '56Kbps MP3', '64Kbps MP3', '96Kbps MP3', '128Kbps MP3', 'MPEG-4 Audio', 'Flac', 'AIFF', 'Apple Lossless Audio', 'Ogg Vorbis', 'WAVE', '24bit Flac', 'Shorten']]:
             normalised_id = file['name'].rsplit(".", 1)[0]
             slugged_id = normalised_id.replace(" ", "-")
-            c_id = f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/canvas"
+            c_id = f"https://iiif.archive.org/iiif/{identifier}/{slugged_id}/canvas"
             c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']))
 
             # create intermediary objects
-            ap = AnnotationPage(id=f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/page")
-            anno = Annotation(id=f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/annotation", motivation="painting", target=c.id)
+            ap = AnnotationPage(id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page")
+            anno = Annotation(id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/annotation", motivation="painting", target=c.id)
 
             # create body based on whether there are derivatives or not:
             if file['name'] in derivatives:
@@ -447,12 +449,12 @@ def create_manifest3(identifier, domain=None, page=None):
         for file in [f for f in originals if f['format'] in ['MPEG4', 'h.264 MPEG4', '512Kb MPEG4', 'HiRes MPEG4', 'MPEG2', 'h.264', 'Matroska', 'Ogg Video', 'Ogg Theora', 'WebM', 'Windows Media', 'Cinepack']]:
             normalised_id = file['name'].rsplit(".", 1)[0]
             slugged_id = normalised_id.replace(" ", "-")
-            c_id = f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/canvas"
+            c_id = f"{URI_PRIFIX}/{identifier}/{slugged_id}/canvas"
             c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), height=int(file['height']), width=int(file['width']))
 
             # create intermediary objects
-            ap = AnnotationPage(id=f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/page")
-            anno = Annotation(id=f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/annotation", motivation="painting", target=c.id)
+            ap = AnnotationPage(id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page")
+            anno = Annotation(id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/annotation", motivation="painting", target=c.id)
 
             # create body based on whether there are derivatives or not:
             if file['name'] in derivatives:
