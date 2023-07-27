@@ -396,7 +396,7 @@ def create_manifest3(identifier, domain=None, page=None):
         for file in [f for f in originals if f['format'] in ['VBR MP3', '32Kbps MP3', '56Kbps MP3', '64Kbps MP3', '96Kbps MP3', '128Kbps MP3', 'MPEG-4 Audio', 'Flac', 'AIFF', 'Apple Lossless Audio', 'Ogg Vorbis', 'WAVE', '24bit Flac', 'Shorten']]:
             normalised_id = file['name'].rsplit(".", 1)[0]
             slugged_id = normalised_id.replace(" ", "-")
-            c_id = f"https://iiif.archive.org/iiif/{identifier}/{slugged_id}/canvas"
+            c_id = f"{URI_PRIFIX}/{identifier}/{slugged_id}/canvas"
             c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']))
 
             # create intermediary objects
