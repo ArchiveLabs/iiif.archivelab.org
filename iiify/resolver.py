@@ -269,11 +269,20 @@ def singleImage(metadata, identifier, manifest, uri):
     imgId = f"{identifier}/{fileName}".replace('/','%2f')
     imgURL = f"{IMG_SRV}/3/{imgId}"
     
+
+    thumbnail = [{
+              "id": f"https://archive.org/download/{identifier}/__ia_thumb.jpg",
+              "type": "Image",
+              "format": "image/jpeg",
+                    }]
+
     manifest.make_canvas_from_iiif(url=imgURL,
                                     id=f"https://iiif.archivelab.org/iiif/{identifier}/canvas",
                                     label="1",
                                     anno_page_id=f"{uri}/annotationPage/1",
-                                    anno_id=f"{uri}/annotation/1")    
+                                    anno_id=f"{uri}/annotation/1", 
+                                    thumbnail=thumbnail)
+
 
 def addMetadata(item, identifier, metadata, collection=False):
     item.homepage = [{"id": f"https://archive.org/details/{identifier}",
