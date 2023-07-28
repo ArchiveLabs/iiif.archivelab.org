@@ -327,6 +327,16 @@ def create_manifest3(identifier, domain=None, page=None):
 
     addMetadata(manifest, identifier, metadata['metadata'])
 
+    try:
+         thumbnail = [{
+              "id": f"https://archive.org/download/{identifier}/__ia_thumb.jpg",
+              "type": "Image",
+              "format": "image/jpeg",
+                                    }]
+    except:
+        pass
+
+
     if mediatype == 'texts':
         # Get bookreader metadata (mostly for filenames and height / width of image)
         # subprefix can be different from the identifier use the scandata filename to find the correct prefix
@@ -355,7 +365,7 @@ def create_manifest3(identifier, domain=None, page=None):
                     imgId = f"{zipFile}/{fileName}".replace('/','%2f')
                     imgURL = f"{IMG_SRV}/3/{imgId}"
 
-                    canvas = Canvas(id=f"https://iiif.archivelab.org/iiif/{identifier}${pageCount}/canvas", label=f"{page['leafNum']}")
+                    canvas = Canvas(id=f"https://iiif.archivelab.org/iiif/{identifier}${pageCount}/canvas", label=f"{page['leafNum']}", thumbnail=thumbnail)
 
                     body = ResourceItem(id=f"{imgURL}/full/max/0/default.jpg", type="Image")
                     body.format = "image/jpeg"
@@ -395,7 +405,11 @@ def create_manifest3(identifier, domain=None, page=None):
             normalised_id = file['name'].rsplit(".", 1)[0]
             slugged_id = normalised_id.replace(" ", "-")
             c_id = f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/canvas"
-            c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']))
+            
+            try:
+                c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), thumbnail=thumbnail)
+            except:
+                c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']))
 
             # create intermediary objects
             ap = AnnotationPage(id=f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/page")
@@ -448,7 +462,12 @@ def create_manifest3(identifier, domain=None, page=None):
             normalised_id = file['name'].rsplit(".", 1)[0]
             slugged_id = normalised_id.replace(" ", "-")
             c_id = f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/canvas"
-            c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), height=int(file['height']), width=int(file['width']))
+            
+            try:
+                c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), height=int(file['height']), width=int(file['width']), 
+                    thumbnail=thumbnail)
+            except:
+                c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), height=int(file['height']), width=int(file['width']))
 
             # create intermediary objects
             ap = AnnotationPage(id=f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/page")
