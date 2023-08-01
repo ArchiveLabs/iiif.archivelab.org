@@ -521,33 +521,25 @@ def create_manifest3(identifier, domain=None, page=None):
             c.add_item(ap)
 
 
-            i = 1
-            for f in metadata['files']:
-                if f['name'].endswith('.vtt'):
-                    print(f['name'])
-                    langIdentifier = f['name'].rsplit(".", 2)[1]
-                    filename = f['name'].rsplit(".", 2)[0]
-                    print(langIdentifier, filename)
-                    
-                    #Add VTT files as captions if they exist
-                    vtt_anno = c.make_annotation(
-                        id=f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/page2/a{i}",
-                        motivation="supplementing",
-                        body=[{
-                                "id": f"https://archive.org/download/{identifier}/{f['name']}",
-                                "type": "Text",
-                                            "language": langIdentifier,
-                                            "format": "text/vtt",
-                                            "label": {"en": [f"Captions in WebVTT format, language: {langIdentifier}"]},
-                                            }],
-                        label="Captions in WebVTT format",
-                       target=f"{c_id}",    
-                       anno_page_id=f"https://iiif.archivelab.org/iiif/{identifier}/{slugged_id}/page2"
-                                  )
-                    i += 1
-                    print(i)
-                else:
-                    pass
+            #Add VTT files as captions if they exist
+            for count, f in enumerate([file for file in metadata['files'] if file['name'].endswith('.vtt')]):
+                langIdentifier = f['name'].rsplit(".", 2)[1]
+                filename = f['name'].rsplit(".", 2)[0]
+                
+                vtt_anno = c.make_annotation(
+                    id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page2/a{count+1}",
+                    motivation="supplementing",
+                    body=[{
+                            "id": f"https://archive.org/download/{identifier}/{f['name']}",
+                            "type": "Text",
+                                        "language": langIdentifier,
+                                        "format": "text/vtt",
+                                        "label": {"en": [f"WebVTT captions ({langIdentifier})"]},
+                                        }],
+                    label="Captions in WebVTT format",
+                   target=f"{c_id}",    
+                   anno_page_id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page2"
+                              )
 
 
             manifest.add_item(c)
