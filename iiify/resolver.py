@@ -527,7 +527,7 @@ def create_manifest3(identifier, domain=None, page=None):
                 filename = f['name'].rsplit(".", 2)[0]
                 
                 vtt_anno = c.make_annotation(
-                    id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page2/a{count+1}",
+                    id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page{count+2}/a{count+1}",
                     motivation="supplementing",
                     body=[{
                             "id": f"https://archive.org/download/{identifier}/{f['name']}",
@@ -538,7 +538,7 @@ def create_manifest3(identifier, domain=None, page=None):
                                         }],
                     label="Captions in WebVTT format",
                    target=f"{c_id}",    
-                   anno_page_id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page2"
+                   anno_page_id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page{count+2}"
                               )
 
 
