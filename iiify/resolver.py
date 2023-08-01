@@ -5,7 +5,7 @@ import requests
 from iiif2 import iiif, web
 from .configs import options, cors, approot, cache_root, media_root, apiurl
 from iiif_prezi3 import Manifest, config, Annotation, AnnotationPage, Canvas, Manifest, ResourceItem, ServiceItem, Choice, Collection, ManifestRef, CollectionRef
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, quote
 import json
 import math 
 
@@ -442,7 +442,7 @@ def create_manifest3(identifier, domain=None, page=None):
                         body.items.append(r)
                     elif file['format'] == format:
                         r = ResourceItem(
-                            id=f"https://archive.org/download/{identifier}/{file['name'].replace(' ', '%20')}",
+                            id=f"https://archive.org/download/{identifier}/{quote(file['name'])}",
                             type='Audio',
                             format=to_mimetype(format),
                             label={"none": [format]},
@@ -493,7 +493,7 @@ def create_manifest3(identifier, domain=None, page=None):
                 # add the choices in order per https://github.com/ArchiveLabs/iiif.archivelab.org/issues/77#issuecomment-1499672734
                 for format in ['MPEG4', 'h.264 MPEG4', '512Kb MPEG4', 'HiRes MPEG4', 'MPEG2', 'h.264 HD', 'h.264', 'Matroska', 'Ogg Video', 'Ogg Theora', 'WebM', 'Windows Media', 'Cinepack']:
                     if format in derivatives[file['name']]:
-                        r = ResourceItem(id=f"https://archive.org/download/{identifier}/{derivatives[file['name']][format]['name'].replace(' ', '%20')}",
+                        r = ResourceItem(id=f"https://archive.org/download/{identifier}/{quote(derivatives[file['name']][format]['name'])}",
                                          type='Video',
                                          format=to_mimetype(format),
                                          label={"none": [format]},
@@ -504,7 +504,7 @@ def create_manifest3(identifier, domain=None, page=None):
                         body.items.append(r)
                     elif file['format'] == format:
                         r = ResourceItem(
-                            id=f"https://archive.org/download/{identifier}/{file['name'].replace(' ', '%20')}",
+                            id=f"https://archive.org/download/{identifier}/{quote(file['name'])}",
                             type='Video',
                             format=to_mimetype(format),
                             label={"none": [format]},

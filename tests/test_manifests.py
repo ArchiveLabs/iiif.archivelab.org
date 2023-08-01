@@ -85,6 +85,15 @@ class TestManifests(unittest.TestCase):
         self.assertEqual(len(manifest['items']),38,f"Expected 38 canvases but got: {len(manifest['items'])}")
         self.assertEqual("AIFF".lower() in resp.text.lower(), True, f"Expected the string 'AIFF'")
 
+    #Test for single quotes in item filenames
+    def test_v3_single_quote_filename(self):
+        resp = self.test_app.get("/iiif/3/acap-test/manifest.json")
+        self.assertEqual(resp.status_code, 200)
+        manifest = resp.json
+        self.assertEqual(len(manifest['items']),5,f"Expected 5 canvases but got: {len(manifest['items'])}")
+        self.assertEqual(manifest['items'][0]['items'][0]['items'][0]['body']['items'][0]['id'], "https://archive.org/download/acap-test/After%20I%20Say%20I%27m%20Sorry%3F%20-%20Miss%20Betty%20Morgan.mp3",
+            f"Expected a URL-encoded string but got {manifest['items'][0]['items'][0]['items'][0]['body']['items'][0]['id']} instead")
+
 ''' to test:
 kaled_jalil (no derivatives)
 Dokku_obrash (geo-restricted?)
