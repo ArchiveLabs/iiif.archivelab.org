@@ -98,6 +98,7 @@ class TestManifests(unittest.TestCase):
 kaled_jalil (no derivatives)
 Dokku_obrash (geo-restricted?)
 m4a filetypes (No length to files?)
+78_mr-sandman_the-chordettes-archie-bleyer-pat-ballard-archie-ballard_gbia0017988b (audio file with auto-generated VTT)
 '''
 
 if __name__ == '__main__':

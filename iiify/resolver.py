@@ -455,6 +455,30 @@ def create_manifest3(identifier, domain=None, page=None):
             anno.body = body
             ap.add_item(anno)
             c.add_item(ap)
+
+
+            #Add VTT files as captions if they exist
+            for count, f in enumerate([file for file in metadata['files'] if file['name'].endswith('.vtt')]):
+                langIdentifier = f['name'].rsplit(".", 2)[1]
+                filename = f['name'].rsplit(".", 2)[0]
+                
+                vtt_anno = c.make_annotation(
+                    id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page{count+2}/a{count+1}",
+                    motivation="supplementing",
+                    body=[{
+                            "id": f"https://archive.org/download/{identifier}/{quote(f['name'])}",
+                            "type": "Text",
+                                        "language": langIdentifier,
+                                        "format": "text/vtt",
+                                        "label": {"en": [f"WebVTT captions ({langIdentifier})"]},
+                                        }],
+                    label="Captions in WebVTT format",
+                   target=f"{c_id}",    
+                   anno_page_id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page{count+2}"
+                              )
+
+
+
             manifest.add_item(c)
 
     elif mediatype == "movies":
@@ -530,7 +554,7 @@ def create_manifest3(identifier, domain=None, page=None):
                     id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page{count+2}/a{count+1}",
                     motivation="supplementing",
                     body=[{
-                            "id": f"https://archive.org/download/{identifier}/{f['name']}",
+                            "id": f"https://archive.org/download/{identifier}/{quote(f['name'])}",
                             "type": "Text",
                                         "language": langIdentifier,
                                         "format": "text/vtt",
