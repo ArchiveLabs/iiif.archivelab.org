@@ -5,7 +5,7 @@ import requests
 from iiif2 import iiif, web
 from .configs import options, cors, approot, cache_root, media_root, apiurl
 from iiif_prezi3 import Manifest, config, Annotation, AnnotationPage, Canvas, Manifest, ResourceItem, ServiceItem, Choice, Collection, ManifestRef, CollectionRef
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, quote
 import json
 import math 
 
@@ -51,6 +51,7 @@ def to_mimetype(format):
         "HiRes MPEG4": "video/mpeg",
         "h.264 MPEG4": "video/mpeg",
         "h.264": "video/mpeg",
+        "h.264 HD": "video/mpeg",
         "Matroska": "video/x-matroska",
         "Cinepack": "video/x-msvideo",
         "AIFF": "audio/aiff",
@@ -271,11 +272,20 @@ def singleImage(metadata, identifier, manifest, uri):
     imgId = f"{identifier}/{fileName}".replace('/','%2f')
     imgURL = f"{IMG_SRV}/3/{imgId}"
     
+
+    thumbnail = [{
+              "id": f"https://archive.org/download/{identifier}/__ia_thumb.jpg",
+              "type": "Image",
+              "format": "image/jpeg",
+                    }]
+
     manifest.make_canvas_from_iiif(url=imgURL,
                                     id=f"{URI_PRIFIX}/{identifier}/canvas",
                                     label="1",
                                     anno_page_id=f"{uri}/annotationPage/1",
-                                    anno_id=f"{uri}/annotation/1")    
+                                    anno_id=f"{uri}/annotation/1", 
+                                    thumbnail=thumbnail)
+
 
 def addMetadata(item, identifier, metadata, collection=False):
     item.homepage = [{"id": f"https://archive.org/details/{identifier}",
@@ -329,6 +339,16 @@ def create_manifest3(identifier, domain=None, page=None):
 
     addMetadata(manifest, identifier, metadata['metadata'])
 
+    try:
+         thumbnail = [{
+              "id": f"https://archive.org/download/{identifier}/__ia_thumb.jpg",
+              "type": "Image",
+              "format": "image/jpeg",
+                                    }]
+    except:
+        pass
+
+
     if mediatype == 'texts':
         # Get bookreader metadata (mostly for filenames and height / width of image)
         # subprefix can be different from the identifier use the scandata filename to find the correct prefix
@@ -357,7 +377,7 @@ def create_manifest3(identifier, domain=None, page=None):
                     imgId = f"{zipFile}/{fileName}".replace('/','%2f')
                     imgURL = f"{IMG_SRV}/3/{imgId}"
 
-                    canvas = Canvas(id=f"{URI_PRIFIX}/{identifier}${pageCount}/canvas", label=f"{page['leafNum']}")
+                    canvas = Canvas(id=f"{URI_PRIFIX}/{identifier}${pageCount}/canvas", label=f"{page['leafNum']}", thumbnail=thumbnail)
 
                     body = ResourceItem(id=f"{imgURL}/full/max/0/default.jpg", type="Image")
                     body.format = "image/jpeg"
@@ -396,8 +416,13 @@ def create_manifest3(identifier, domain=None, page=None):
         for file in [f for f in originals if f['format'] in ['VBR MP3', '32Kbps MP3', '56Kbps MP3', '64Kbps MP3', '96Kbps MP3', '128Kbps MP3', 'MPEG-4 Audio', 'Flac', 'AIFF', 'Apple Lossless Audio', 'Ogg Vorbis', 'WAVE', '24bit Flac', 'Shorten']]:
             normalised_id = file['name'].rsplit(".", 1)[0]
             slugged_id = normalised_id.replace(" ", "-")
+
             c_id = f"{URI_PRIFIX}/{identifier}/{slugged_id}/canvas"
-            c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']))
+            
+            try:
+                c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), thumbnail=thumbnail)
+            except:
+                c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']))
 
             # create intermediary objects
             ap = AnnotationPage(id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page")
@@ -417,7 +442,7 @@ def create_manifest3(identifier, domain=None, page=None):
                         body.items.append(r)
                     elif file['format'] == format:
                         r = ResourceItem(
-                            id=f"https://archive.org/download/{identifier}/{file['name'].replace(' ', '%20')}",
+                            id=f"https://archive.org/download/{identifier}/{quote(file['name'])}",
                             type='Audio',
                             format=to_mimetype(format),
                             label={"none": [format]},
@@ -430,6 +455,35 @@ def create_manifest3(identifier, domain=None, page=None):
             anno.body = body
             ap.add_item(anno)
             c.add_item(ap)
+
+
+            #Add VTT files as captions if they exist
+            for count, f in enumerate([file for file in metadata['files'] if file['name'].endswith('.vtt')]):
+                langIdentifier = f['name'].rsplit(".", 2)[1]
+                filename = f['name'].rsplit(".", 2)[0]
+                
+                if langIdentifier.lower() == "asr":
+                    langIdentifier = "Automatic speech recognition"
+                else:
+                    pass
+
+                vtt_anno = c.make_annotation(
+                    id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page{count+2}/a{count+1}",
+                    motivation="supplementing",
+                    body=[{
+                            "id": f"https://archive.org/download/{identifier}/{quote(f['name'])}",
+                            "type": "Text",
+                                        "language": langIdentifier,
+                                        "format": "text/vtt",
+                                        "label": {"en": [f"WebVTT captions ({langIdentifier})"]},
+                                        }],
+                    label="Captions in WebVTT format",
+                   target=f"{c_id}",    
+                   anno_page_id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page{count+2}"
+                              )
+
+
+
             manifest.add_item(c)
 
     elif mediatype == "movies":
@@ -446,11 +500,17 @@ def create_manifest3(identifier, domain=None, page=None):
                 originals.append(f)
             
         # create the canvases for each original
-        for file in [f for f in originals if f['format'] in ['MPEG4', 'h.264 MPEG4', '512Kb MPEG4', 'HiRes MPEG4', 'MPEG2', 'h.264', 'Matroska', 'Ogg Video', 'Ogg Theora', 'WebM', 'Windows Media', 'Cinepack']]:
+        for file in [f for f in originals if f['format'] in ['MPEG4', 'h.264 MPEG4', '512Kb MPEG4', 'HiRes MPEG4', 'MPEG2', 'h.264 HD', 'h.264', 'Matroska', 'Ogg Video', 'Ogg Theora', 'WebM', 'Windows Media', 'Cinepack']]:
             normalised_id = file['name'].rsplit(".", 1)[0]
             slugged_id = normalised_id.replace(" ", "-")
+
             c_id = f"{URI_PRIFIX}/{identifier}/{slugged_id}/canvas"
-            c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), height=int(file['height']), width=int(file['width']))
+            
+            try:
+                c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), height=int(file['height']), width=int(file['width']), 
+                    thumbnail=thumbnail)
+            except:
+                c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), height=int(file['height']), width=int(file['width']))
 
             # create intermediary objects
             ap = AnnotationPage(id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page")
@@ -460,9 +520,9 @@ def create_manifest3(identifier, domain=None, page=None):
             if file['name'] in derivatives:
                 body = Choice(items=[])
                 # add the choices in order per https://github.com/ArchiveLabs/iiif.archivelab.org/issues/77#issuecomment-1499672734
-                for format in ['MPEG4', 'h.264 MPEG4', '512Kb MPEG4', 'HiRes MPEG4', 'MPEG2', 'h.264', 'Matroska', 'Ogg Video', 'Ogg Theora', 'WebM', 'Windows Media', 'Cinepack']:
+                for format in ['MPEG4', 'h.264 MPEG4', '512Kb MPEG4', 'HiRes MPEG4', 'MPEG2', 'h.264 HD', 'h.264', 'Matroska', 'Ogg Video', 'Ogg Theora', 'WebM', 'Windows Media', 'Cinepack']:
                     if format in derivatives[file['name']]:
-                        r = ResourceItem(id=f"https://archive.org/download/{identifier}/{derivatives[file['name']][format]['name'].replace(' ', '%20')}",
+                        r = ResourceItem(id=f"https://archive.org/download/{identifier}/{quote(derivatives[file['name']][format]['name'])}",
                                          type='Video',
                                          format=to_mimetype(format),
                                          label={"none": [format]},
@@ -473,7 +533,7 @@ def create_manifest3(identifier, domain=None, page=None):
                         body.items.append(r)
                     elif file['format'] == format:
                         r = ResourceItem(
-                            id=f"https://archive.org/download/{identifier}/{file['name'].replace(' ', '%20')}",
+                            id=f"https://archive.org/download/{identifier}/{quote(file['name'])}",
                             type='Video',
                             format=to_mimetype(format),
                             label={"none": [format]},
@@ -488,6 +548,35 @@ def create_manifest3(identifier, domain=None, page=None):
             anno.body = body
             ap.add_item(anno)
             c.add_item(ap)
+
+
+            #Add VTT files as captions if they exist
+            for count, f in enumerate([file for file in metadata['files'] if file['name'].endswith('.vtt')]):
+
+                langIdentifier = f['name'].rsplit(".", 2)[1]
+                filename = f['name'].rsplit(".", 2)[0]
+                
+                if langIdentifier.lower() == "asr":
+                    langIdentifier = "Automatic speech recognition"
+                else:
+                    pass
+
+                vtt_anno = c.make_annotation(
+                    id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page{count+2}/a{count+1}",
+                    motivation="supplementing",
+                    body=[{
+                            "id": f"https://archive.org/download/{identifier}/{quote(f['name'])}",
+                            "type": "Text",
+                                        "language": langIdentifier,
+                                        "format": "text/vtt",
+                                        "label": {"en": [f"WebVTT captions ({langIdentifier})"]},
+                                        }],
+                    label="Captions in WebVTT format",
+                   target=f"{c_id}",    
+                   anno_page_id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page{count+2}"
+                              )
+
+
             manifest.add_item(c)
 
     else:            
