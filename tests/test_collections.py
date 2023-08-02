@@ -13,7 +13,7 @@ class TestCollections(unittest.TestCase):
         collection = resp.json
 
         self.assertEqual(collection['type'], "Collection", f"Unexpected type. Expected collection got {collection['type']}")
-        self.assertEqual(len(collection['items']),1001,f"Expected 1000 items but got: {len(collection['items'])}")
+        self.assertEqual(len(collection['items']),1001,f"Expected 1001 items but got: {len(collection['items'])}")
         self.assertEqual(collection['items'][-1]['type'],'Collection',"Expected last item to be a collection pointing to the next set of results")
 
 
