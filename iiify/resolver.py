@@ -462,6 +462,11 @@ def create_manifest3(identifier, domain=None, page=None):
                 langIdentifier = f['name'].rsplit(".", 2)[1]
                 filename = f['name'].rsplit(".", 2)[0]
                 
+                if langIdentifier.lower() == "asr":
+                    langIdentifier = "Automatic speech recognition"
+                else:
+                    pass
+
                 vtt_anno = c.make_annotation(
                     id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page{count+2}/a{count+1}",
                     motivation="supplementing",
@@ -547,9 +552,15 @@ def create_manifest3(identifier, domain=None, page=None):
 
             #Add VTT files as captions if they exist
             for count, f in enumerate([file for file in metadata['files'] if file['name'].endswith('.vtt')]):
+
                 langIdentifier = f['name'].rsplit(".", 2)[1]
                 filename = f['name'].rsplit(".", 2)[0]
                 
+                if langIdentifier.lower() == "asr":
+                    langIdentifier = "Automatic speech recognition"
+                else:
+                    pass
+
                 vtt_anno = c.make_annotation(
                     id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page{count+2}/a{count+1}",
                     motivation="supplementing",
