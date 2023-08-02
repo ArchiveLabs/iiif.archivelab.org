@@ -285,7 +285,19 @@ def addMetadata(item, identifier, metadata, collection=False):
 
     item.provider = [{"id": "https://archive.org",
                          "type": "Agent",
-                         "label": {"en": ["The Internet Archive"]}}]
+                         "label": {"en": ["The Internet Archive"]},
+                      "homepage": [{"id": "https://archive.org",
+                         "type": "Text",
+                         "label": {"en": ["Internet Archive Homepage"]},
+                         "format": "text/html"}],
+                      "logo": [{
+                          "id": "https://archive.org/images/glogo.png",
+                          "type": "Image",
+                          "format": "image/png",
+                          "height": 79,
+                          "width": 79
+                            }],
+                         }]
 
     if "licenseurl" in metadata:
         item.rights = metadata["licenseurl"].replace("https", "http", 1)
