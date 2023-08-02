@@ -85,6 +85,13 @@ class TestManifests(unittest.TestCase):
         self.assertEqual(len(manifest['items']),38,f"Expected 38 canvases but got: {len(manifest['items'])}")
         self.assertEqual("AIFF".lower() in resp.text.lower(), True, f"Expected the string 'AIFF'")
 
+    def test_provider_logo(self):
+        resp = self.test_app.get("/iiif/3/rashodgson68/manifest.json")
+        self.assertEqual(resp.status_code, 200)
+        manifest = resp.json
+        self.assertEqual(manifest['provider'][0]['homepage'][0]['id'] == "https://archive.org", True, f"Expected 'https://archive.org' but got {manifest['provider'][0]['id']}")
+        self.assertEqual(manifest['provider'][0]['logo'][0]['id'] == "https://archive.org/images/glogo.png", True, f"Expected logo URI but got {manifest['provider'][0]['logo'][0]['id']}")
+
 ''' to test:
 kaled_jalil (no derivatives)
 Dokku_obrash (geo-restricted?)
