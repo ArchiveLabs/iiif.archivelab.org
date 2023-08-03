@@ -5,7 +5,7 @@ import requests
 from iiif2 import iiif, web
 from .configs import options, cors, approot, cache_root, media_root, apiurl
 from iiif_prezi3 import Manifest, config, Annotation, AnnotationPage, Canvas, Manifest, ResourceItem, ServiceItem, Choice, Collection, ManifestRef, CollectionRef
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, quote
 import json
 import math 
 
@@ -418,6 +418,30 @@ def create_manifest3(identifier, domain=None, page=None):
 
             c_id = f"{URI_PRIFIX}/{identifier}/{slugged_id}/canvas"
             
+            # Add thumbnail as image service
+            for t in valid_filetypes:
+                thumb = file['name'].rsplit(".")[0]+"."+t
+                if thumb in str(metadata['files']):
+
+                    imgId = f"{identifier}/{quote(thumb)}".replace('/','%2F')
+                    imgURL = f"{IMG_SRV}/3/{imgId}"
+
+                    thumbnail = ResourceItem(id=f"{imgURL}/full/max/0/default.jpg",
+                             type="Image",
+                             format="image/jpeg",
+                             #height=300,
+                             #width=221
+                             )
+                    thumbnail.make_service(id=f"{imgURL}",
+                           type="ImageService3",
+                           profile="level2")
+                    thumbnail = [thumbnail]
+                else:
+                    pass
+
+
+
+
             try:
                 c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), thumbnail=thumbnail)
             except:
