@@ -43,7 +43,7 @@ if CRT and KEY:
 # Especially useful for SeaDragon viewers running locally
 cors = bool(int(config.getdef('server', 'cors', 0)))
 
-iiif_domain = config.getdef('server', 'domain', 'https://iiif.archivelab.org')
+iiif_domain = config.getdef('server', 'domain', 'https://iiif.archivelab.org') # iiif.archive.org?
 media_root = config.getdef('media', 'root', 'media')
 if not os.path.isabs(media_root):
     media = os.path.join(approot, media_root)
@@ -66,7 +66,7 @@ s3key = config.getdef('url2iiif', 's3key', '')
 s3secret = config.getdef('url2iiif', 's3secret', '')
 
 # cantaloupe server
-image_server = config.getdef('cantaloupe', 'url', 'https://services-ia-iiif-cantaloupe-experiment.dev.archive.org/iiif')
+image_server = config.getdef('cantaloupe', 'url', 'https://cantaloupe.prod.archive.org//iiif')
 
 # caching
 cache_timeouts = {
