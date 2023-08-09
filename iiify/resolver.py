@@ -3,7 +3,7 @@
 import os
 import requests
 from iiif2 import iiif, web
-from .configs import options, cors, approot, cache_root, media_root, apiurl
+from .configs import options, cors, approot, cache_root, media_root, apiurl, image_server
 from iiif_prezi3 import Manifest, config, Annotation, AnnotationPage, Canvas, Manifest, ResourceItem, ServiceItem, Choice, Collection, ManifestRef, CollectionRef
 from urllib.parse import urlparse, parse_qs
 import json
@@ -12,7 +12,6 @@ import math
 IMG_CTX = 'http://iiif.io/api/image/2/context.json'
 PRZ_CTX = 'http://iiif.io/api/presentation/2/context.json'
 ARCHIVE = 'http://archive.org'
-IMG_SRV = 'https://services-ia-iiif-cantaloupe-experiment.dev.archive.org/iiif'
 METADATA_FIELDS = ("title", "volume", "publisher", "subject", "date", "contributor", "creator")
 bookdata = 'http://%s/BookReader/BookReaderJSON.php'
 bookreader = "http://%s/BookReader/BookReaderImages.php"
@@ -269,7 +268,7 @@ def singleImage(metadata, identifier, manifest, uri):
                 fileName = f"{f['name']}/{f['name'].replace('.zip','')}/{f['name'].replace('jp2.zip','0000.jp2')}"
 
     imgId = f"{identifier}/{fileName}".replace('/','%2f')
-    imgURL = f"{IMG_SRV}/3/{imgId}"
+    imgURL = f"{image_server}/3/{imgId}"
     
     manifest.make_canvas_from_iiif(url=imgURL,
                                     id=f"{URI_PRIFIX}/{identifier}/canvas",
@@ -367,7 +366,7 @@ def create_manifest3(identifier, domain=None, page=None):
                     fileUrl = urlparse(page['uri'])
                     fileName = parse_qs(fileUrl.query).get('file')[0]
                     imgId = f"{zipFile}/{fileName}".replace('/','%2f')
-                    imgURL = f"{IMG_SRV}/3/{imgId}"
+                    imgURL = f"{image_server}/3/{imgId}"
 
                     canvas = Canvas(id=f"{URI_PRIFIX}/{identifier}${pageCount}/canvas", label=f"{page['leafNum']}")
 
