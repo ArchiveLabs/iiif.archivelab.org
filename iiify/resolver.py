@@ -11,11 +11,11 @@ import math
 
 IMG_CTX = 'http://iiif.io/api/image/2/context.json'
 PRZ_CTX = 'http://iiif.io/api/presentation/2/context.json'
-ARCHIVE = 'http://archive.org'
 METADATA_FIELDS = ("title", "volume", "publisher", "subject", "date", "contributor", "creator")
 bookdata = 'http://%s/BookReader/BookReaderJSON.php'
 bookreader = "http://%s/BookReader/BookReaderImages.php"
-URI_PRIFIX = "https://iiif.archive.org/iiif"
+ARCHIVE = 'http://archive.org'  # move to config
+URI_PRIFIX = "https://iiif.archive.org/iiif"  # move to config
 
 valid_filetypes = ['jpg', 'jpeg', 'png', 'gif', 'tif', 'jp2', 'pdf', 'tiff']
 
