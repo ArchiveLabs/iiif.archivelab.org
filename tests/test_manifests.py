@@ -7,6 +7,18 @@ class TestManifests(unittest.TestCase):
     def setUp(self) -> None:
         self.test_app = FlaskClient(app)
 
+
+    def test_no_version(self):
+        resp = self.test_app.get("/iiif/rashodgson68/manifest.json")
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.location, '/iiif/3/rashodgson68/manifest.json')
+
+    def test_ident(self):
+        resp = self.test_app.get("/iiif/3/img-8664_202009/manifest.json")
+        self.assertEqual(resp.status_code, 200)
+        manifest = resp.json
+        self.assertEqual(manifest['id'], 'http://localhost/iiif/3/img-8664_202009/manifest.json', 'Unexpected identifier')
+
     def test_v3_image_manifest(self):
         resp = self.test_app.get("/iiif/3/rashodgson68/manifest.json")
         self.assertEqual(resp.status_code, 200)

@@ -333,7 +333,7 @@ def create_manifest3(identifier, domain=None, page=None):
     mediatype = metadata['metadata']['mediatype']
 
     # Used to build up URIs for the manifest
-    uri = f"{domain}{identifier}"
+    uri = f"{domain}3/{identifier}"
 
     config.configs['helpers.auto_fields.AutoLang'].auto_lang = "none"
 
@@ -352,7 +352,7 @@ def create_manifest3(identifier, domain=None, page=None):
 
         bookReaderURL = f"https://{metadata.get('server')}/BookReader/BookReaderJSIA.php?id={identifier}&itemPath={metadata.get('dir')}&server={metadata.get('server')}&format=jsonp&subPrefix={subprefix}"
 
-        print (f'Book reader url: {bookReaderURL}')
+        #print (f'Book reader url: {bookReaderURL}')
         bookreader = requests.get(bookReaderURL).json()
         if 'error' in bookreader:
             # Image stack not found. Maybe a single image
