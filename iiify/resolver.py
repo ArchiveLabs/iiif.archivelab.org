@@ -418,29 +418,25 @@ def create_manifest3(identifier, domain=None, page=None):
 
             c_id = f"{URI_PRIFIX}/{identifier}/{slugged_id}/canvas"
             
-            # Add thumbnail as image service
-            for t in valid_filetypes:
-                thumb = file['name'].rsplit(".")[0]+"."+t
-                if thumb in str(metadata['files']):
+            # Add thumbnail
+            for t, ext in enumerate(['png', 'jpeg', 'jpg']):
+                thumb = file['name'].rsplit('.', maxsplit=1)[0]+"."+ext
+                if t == 0: 
+                    format = "image/png"
+                else:
+                    format = "image/jpeg"                     
+                
+                if thumb.lower() in str(metadata['files']).lower():
 
-                    imgId = f"{identifier}/{quote(thumb)}".replace('/','%2F')
-                    imgURL = f"{IMG_SRV}/3/{imgId}"
+                    imgId = quote(f"{identifier}/{thumb}")
 
-                    thumbnail = ResourceItem(id=f"{imgURL}/full/max/0/default.jpg",
+                    thumbnail = ResourceItem(id=f"https://archive.org/download/{imgId}",
                              type="Image",
-                             format="image/jpeg",
-                             #height=300,
-                             #width=221
+                             format=f"{format}",
                              )
-                    thumbnail.make_service(id=f"{imgURL}",
-                           type="ImageService3",
-                           profile="level2")
                     thumbnail = [thumbnail]
                 else:
                     pass
-
-
-
 
             try:
                 c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), thumbnail=thumbnail)
