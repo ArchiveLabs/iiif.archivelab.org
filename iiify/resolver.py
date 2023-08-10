@@ -5,7 +5,7 @@ import requests
 from iiif2 import iiif, web
 from .configs import options, cors, approot, cache_root, media_root, apiurl
 from iiif_prezi3 import Manifest, config, Annotation, AnnotationPage, Canvas, Manifest, ResourceItem, ServiceItem, Choice, Collection, ManifestRef, CollectionRef
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, quote
 import json
 import math 
 
@@ -271,11 +271,20 @@ def singleImage(metadata, identifier, manifest, uri):
     imgId = f"{identifier}/{fileName}".replace('/','%2f')
     imgURL = f"{IMG_SRV}/3/{imgId}"
     
+
+    thumbnail = [{
+              "id": f"https://archive.org/download/{identifier}/__ia_thumb.jpg",
+              "type": "Image",
+              "format": "image/jpeg",
+                    }]
+
     manifest.make_canvas_from_iiif(url=imgURL,
                                     id=f"{URI_PRIFIX}/{identifier}/canvas",
                                     label="1",
                                     anno_page_id=f"{uri}/annotationPage/1",
-                                    anno_id=f"{uri}/annotation/1")    
+                                    anno_id=f"{uri}/annotation/1", 
+                                    thumbnail=thumbnail)
+
 
 def addMetadata(item, identifier, metadata, collection=False):
     item.homepage = [{"id": f"https://archive.org/details/{identifier}",
@@ -341,6 +350,16 @@ def create_manifest3(identifier, domain=None, page=None):
 
     addMetadata(manifest, identifier, metadata['metadata'])
 
+    try:
+         thumbnail = [{
+              "id": f"https://archive.org/download/{identifier}/__ia_thumb.jpg",
+              "type": "Image",
+              "format": "image/jpeg",
+                                    }]
+    except:
+        pass
+
+
     if mediatype == 'texts':
         # Get bookreader metadata (mostly for filenames and height / width of image)
         # subprefix can be different from the identifier use the scandata filename to find the correct prefix
@@ -369,7 +388,7 @@ def create_manifest3(identifier, domain=None, page=None):
                     imgId = f"{zipFile}/{fileName}".replace('/','%2f')
                     imgURL = f"{IMG_SRV}/3/{imgId}"
 
-                    canvas = Canvas(id=f"{URI_PRIFIX}/{identifier}${pageCount}/canvas", label=f"{page['leafNum']}")
+                    canvas = Canvas(id=f"{URI_PRIFIX}/{identifier}${pageCount}/canvas", label=f"{page['leafNum']}", thumbnail=thumbnail)
 
                     body = ResourceItem(id=f"{imgURL}/full/max/0/default.jpg", type="Image")
                     body.format = "image/jpeg"
@@ -408,8 +427,33 @@ def create_manifest3(identifier, domain=None, page=None):
         for file in [f for f in originals if f['format'] in ['VBR MP3', '32Kbps MP3', '56Kbps MP3', '64Kbps MP3', '96Kbps MP3', '128Kbps MP3', 'MPEG-4 Audio', 'Flac', 'AIFF', 'Apple Lossless Audio', 'Ogg Vorbis', 'WAVE', '24bit Flac', 'Shorten']]:
             normalised_id = file['name'].rsplit(".", 1)[0]
             slugged_id = normalised_id.replace(" ", "-")
+
             c_id = f"{URI_PRIFIX}/{identifier}/{slugged_id}/canvas"
-            c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']))
+            
+            # Add thumbnail
+            for t, ext in enumerate(['png', 'jpeg', 'jpg']):
+                thumb = file['name'].rsplit('.', maxsplit=1)[0]+"."+ext
+                if t == 0: 
+                    format = "image/png"
+                else:
+                    format = "image/jpeg"                     
+                
+                if thumb.lower() in str(metadata['files']).lower():
+
+                    imgId = quote(f"{identifier}/{thumb}")
+
+                    thumbnail = ResourceItem(id=f"https://archive.org/download/{imgId}",
+                             type="Image",
+                             format=f"{format}",
+                             )
+                    thumbnail = [thumbnail]
+                else:
+                    pass
+
+            try:
+                c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), thumbnail=thumbnail)
+            except:
+                c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']))
 
             # create intermediary objects
             ap = AnnotationPage(id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page")
@@ -461,8 +505,14 @@ def create_manifest3(identifier, domain=None, page=None):
         for file in [f for f in originals if f['format'] in ['MPEG4', 'h.264 MPEG4', '512Kb MPEG4', 'HiRes MPEG4', 'MPEG2', 'h.264', 'Matroska', 'Ogg Video', 'Ogg Theora', 'WebM', 'Windows Media', 'Cinepack']]:
             normalised_id = file['name'].rsplit(".", 1)[0]
             slugged_id = normalised_id.replace(" ", "-")
+
             c_id = f"{URI_PRIFIX}/{identifier}/{slugged_id}/canvas"
-            c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), height=int(file['height']), width=int(file['width']))
+            
+            try:
+                c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), height=int(file['height']), width=int(file['width']), 
+                    thumbnail=thumbnail)
+            except:
+                c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), height=int(file['height']), width=int(file['width']))
 
             # create intermediary objects
             ap = AnnotationPage(id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page")
