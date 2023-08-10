@@ -3,7 +3,7 @@
 import os
 import requests
 from iiif2 import iiif, web
-from .configs import options, cors, approot, cache_root, media_root, apiurl, image_server
+from .configs import options, cors, approot, cache_root, media_root, apiurl, image_server, iiif_uri
 from iiif_prezi3 import Manifest, config, Annotation, AnnotationPage, Canvas, Manifest, ResourceItem, ServiceItem, Choice, Collection, ManifestRef, CollectionRef
 from urllib.parse import urlparse, parse_qs
 import json
@@ -12,10 +12,9 @@ import math
 IMG_CTX = 'http://iiif.io/api/image/2/context.json'
 PRZ_CTX = 'http://iiif.io/api/presentation/2/context.json'
 METADATA_FIELDS = ("title", "volume", "publisher", "subject", "date", "contributor", "creator")
+ARCHIVE = 'http://archive.org'
 bookdata = 'http://%s/BookReader/BookReaderJSON.php'
 bookreader = "http://%s/BookReader/BookReaderImages.php"
-ARCHIVE = 'http://archive.org'  # move to config
-URI_PRIFIX = "https://iiif.archive.org/iiif"  # move to config
 
 valid_filetypes = ['jpg', 'jpeg', 'png', 'gif', 'tif', 'jp2', 'pdf', 'tiff']
 
@@ -271,13 +270,13 @@ def singleImage(metadata, identifier, manifest, uri):
     imgURL = f"{image_server}/3/{imgId}"
     
     manifest.make_canvas_from_iiif(url=imgURL,
-                                    id=f"{URI_PRIFIX}/{identifier}/canvas",
+                                    id=f"{iiif_uri}/{identifier}/canvas",
                                     label="1",
                                     anno_page_id=f"{uri}/annotationPage/1",
                                     anno_id=f"{uri}/annotation/1")    
 
 def addMetadata(item, identifier, metadata, collection=False):
-    item.homepage = [{"id": f"https://archive.org/details/{identifier}",
+    item.homepage = [{"id": f"{ARCHIVE}/details/{identifier}",
                          "type": "Text",
                          "label": {"en": ["Item Page on Internet Archive"]},
                          "format": "text/html"}]
@@ -368,7 +367,7 @@ def create_manifest3(identifier, domain=None, page=None):
                     imgId = f"{zipFile}/{fileName}".replace('/','%2f')
                     imgURL = f"{image_server}/3/{imgId}"
 
-                    canvas = Canvas(id=f"{URI_PRIFIX}/{identifier}${pageCount}/canvas", label=f"{page['leafNum']}")
+                    canvas = Canvas(id=f"{iiif_uri}/{identifier}${pageCount}/canvas", label=f"{page['leafNum']}")
 
                     body = ResourceItem(id=f"{imgURL}/full/max/0/default.jpg", type="Image")
                     body.format = "image/jpeg"
@@ -407,12 +406,12 @@ def create_manifest3(identifier, domain=None, page=None):
         for file in [f for f in originals if f['format'] in ['VBR MP3', '32Kbps MP3', '56Kbps MP3', '64Kbps MP3', '96Kbps MP3', '128Kbps MP3', 'MPEG-4 Audio', 'Flac', 'AIFF', 'Apple Lossless Audio', 'Ogg Vorbis', 'WAVE', '24bit Flac', 'Shorten']]:
             normalised_id = file['name'].rsplit(".", 1)[0]
             slugged_id = normalised_id.replace(" ", "-")
-            c_id = f"{URI_PRIFIX}/{identifier}/{slugged_id}/canvas"
+            c_id = f"{iiif_uri}/{identifier}/{slugged_id}/canvas"
             c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']))
 
             # create intermediary objects
-            ap = AnnotationPage(id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page")
-            anno = Annotation(id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/annotation", motivation="painting", target=c.id)
+            ap = AnnotationPage(id=f"{iiif_uri}/{identifier}/{slugged_id}/page")
+            anno = Annotation(id=f"{iiif_uri}/{identifier}/{slugged_id}/annotation", motivation="painting", target=c.id)
 
             # create body based on whether there are derivatives or not:
             if file['name'] in derivatives:
@@ -460,12 +459,12 @@ def create_manifest3(identifier, domain=None, page=None):
         for file in [f for f in originals if f['format'] in ['MPEG4', 'h.264 MPEG4', '512Kb MPEG4', 'HiRes MPEG4', 'MPEG2', 'h.264', 'Matroska', 'Ogg Video', 'Ogg Theora', 'WebM', 'Windows Media', 'Cinepack']]:
             normalised_id = file['name'].rsplit(".", 1)[0]
             slugged_id = normalised_id.replace(" ", "-")
-            c_id = f"{URI_PRIFIX}/{identifier}/{slugged_id}/canvas"
+            c_id = f"{iiif_uri}/{identifier}/{slugged_id}/canvas"
             c = Canvas(id=c_id, label=normalised_id, duration=float(file['length']), height=int(file['height']), width=int(file['width']))
 
             # create intermediary objects
-            ap = AnnotationPage(id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/page")
-            anno = Annotation(id=f"{URI_PRIFIX}/{identifier}/{slugged_id}/annotation", motivation="painting", target=c.id)
+            ap = AnnotationPage(id=f"{iiif_uri}/{identifier}/{slugged_id}/page")
+            anno = Annotation(id=f"{iiif_uri}/{identifier}/{slugged_id}/annotation", motivation="painting", target=c.id)
 
             # create body based on whether there are derivatives or not:
             if file['name'] in derivatives:

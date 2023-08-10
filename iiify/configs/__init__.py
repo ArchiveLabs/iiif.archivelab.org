@@ -43,7 +43,7 @@ if CRT and KEY:
 # Especially useful for SeaDragon viewers running locally
 cors = bool(int(config.getdef('server', 'cors', 0)))
 
-iiif_domain = config.getdef('server', 'domain', 'https://iiif.archivelab.org') # iiif.archive.org?
+iiif_uri = config.getdef('server', 'uri', 'https://iiif.archivelab.org/iiif')
 media_root = config.getdef('media', 'root', 'media')
 if not os.path.isabs(media_root):
     media = os.path.join(approot, media_root)
