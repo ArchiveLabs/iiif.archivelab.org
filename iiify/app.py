@@ -8,7 +8,6 @@ from flask_caching import Cache
 from iiif2 import iiif, web
 from .resolver import ia_resolver, create_manifest, create_manifest3, getids, collection, \
     purify_domain, cantaloupe_resolver, create_collection3
-from .url2iiif import url2ia
 from .configs import options, cors, approot, cache_root, media_root, \
     cache_expr, version, image_server, cache_timeouts
 
@@ -52,21 +51,6 @@ def index():
     cursor = request.args.get('cursor', '')
     q = request.args.get('q', '')
     return jsonify(getids(q, cursor=cursor))
-
-
-@app.route('/iiif/url2iiif')
-def url2iiif():
-    url = request.args.get('url', '')
-    if not url:
-        abort(400)
-    try:
-        domain = purify_domain(request.args.get('domain', request.url_root))
-        filehash = url2ia(url)
-        time.sleep(20)
-        return redirect('%surl2iiif$%s' % (domain, filehash))
-    except Exception as e:
-        print(e)
-        abort(400)
 
 
 @app.route('/iiif/collection.json')
