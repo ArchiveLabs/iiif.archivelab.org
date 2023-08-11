@@ -164,7 +164,7 @@ def manifest3(identifier):
 @app.route('/iiif/<identifier>/manifest.json')
 @cache.cached(timeout=cache_timeouts["long"], forced_update=cache_bust)
 def manifest(identifier):
-    return manifest3(identifier)
+    return redirect(f'/iiif/3/{identifier}/manifest.json', code=302)
 
 @app.route('/iiif/2/<identifier>/manifest.json')
 def manifest2(identifier):
